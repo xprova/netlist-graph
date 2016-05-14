@@ -9,7 +9,6 @@ public class Net {
 	public Net(String id) {
 
 		this.id = id;
-
 	}
 
 	public boolean inRange(int bit) {
