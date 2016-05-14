@@ -18,7 +18,7 @@ public class NetTest extends TestCase {
 			boolean inRange = (i >= 0) && (i <= 3);
 			assert (x.inRange(i) == inRange);
 		}
-		
+
 		Net y = new Net("y");
 		y.start = 0;
 		y.end = 3;

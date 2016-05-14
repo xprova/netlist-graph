@@ -69,9 +69,7 @@ public class VerilogParser {
 	private final static String ERR_MSG_7 = "Unsupported grammar for bit range";
 	private final static String ERR_MSG_8 = "net redefinition";
 	private final static String ERR_MSG_9 = "declaration mismatch between port <%s> [%d:%d] and wire <%s> [%d:%d]";
-	// private final static String ERR_MSG_10 =
-	// "incorrect number of connections for module %s";
-	private final static String ERR_MSG_11 = "File contains more than a single module";
+
 	private final static String ERR_MSG_12 = "gate instantiation is not supported";
 	private final static String ERR_MSG_13 = "unsupported module connection";
 	private final static String ERR_MSG_14 = "inout nets are not supported";
@@ -81,8 +79,7 @@ public class VerilogParser {
 
 	// exception generation and handling
 
-	private static void fail(String errMsg, Module_itemContext itemCon)
-			throws UnsupportedGrammerException {
+	private static void fail(String errMsg, Module_itemContext itemCon) throws UnsupportedGrammerException {
 
 		Interval int1 = itemCon.getSourceInterval(); // get token interval
 
@@ -120,8 +117,7 @@ public class VerilogParser {
 
 	// parsing
 
-	public static Netlist parse(String verilogFile, GateLibrary library1)
-			throws Exception {
+	public static ArrayList<Netlist> parse(String verilogFile, GateLibrary library1) throws Exception {
 
 		// ANTLR parsing
 
@@ -139,153 +135,158 @@ public class VerilogParser {
 
 		List<DescriptionContext> modules = source.description();
 
-		if (modules.size() > 1) {
+		int nModules = modules.size();
 
-			fail(ERR_MSG_11);
-		}
+		ArrayList<Netlist> netlistArr = new ArrayList<Netlist>();
 
-		Module_declarationContext module = modules.get(0).module_declaration();
+		for (int j = 0; j < nModules; j++) {
 
-		VerilogParser.tokenStream = tokenStream;
+			Module_declarationContext module = modules.get(j).module_declaration();
 
-		VerilogParser.library1 = library1;
+			VerilogParser.tokenStream = tokenStream;
 
-		Netlist netlist = new Netlist();
+			VerilogParser.library1 = library1;
 
-		netlist.name = module.module_identifier().getText();
+			Netlist netlist = new Netlist();
 
-		List_of_portsContext portList = module.list_of_ports();
+			netlist.name = module.module_identifier().getText();
 
-		if (portList == null) {
+			List_of_portsContext portList = module.list_of_ports();
 
-			fail(ERR_MSG_4);
-		}
+			if (portList == null) {
 
-		ArrayList<String> ports = new ArrayList<String>();
-
-		for (int i = 0; i < portList.port().size(); i++) {
-
-			ports.add(portList.port(i).getText());
-
-		}
-
-		netlist.port_list = join(ports, ", ");
-
-		// initialise member variables
-
-		netlist.ports = new HashMap<String, Port>();
-
-		netlist.nets = new HashMap<String, Net>();
-
-		netlist.modules = new HashMap<String, Module>();
-
-		List<Module_itemContext> x = module.module_item();
-
-		// netlist.nets.put("1'b1", new Net("1'b1"));
-
-		// parse ports
-
-		parsePortList(module, netlist);
-
-		// main parsing loop:
-
-		// initially goes through the module items adding them to either netDefs
-		// or modDefs
-		// or throwing a parsing exception
-
-		ArrayList<Module_itemContext> netDefs = new ArrayList<Module_itemContext>();
-
-		ArrayList<Module_itemContext> modDefs = new ArrayList<Module_itemContext>();
-
-		for (int i = 0; i < x.size(); i++) {
-
-			Module_itemContext itemCon = x.get(i);
-
-			if (itemCon.port_declaration() != null) {
-
-				// port declaration
-
-				parsePortDeclaration(itemCon, netlist);
-
-				continue;
+				fail(ERR_MSG_4);
 			}
 
-			Module_or_generate_itemContext modItem = itemCon
-					.module_or_generate_item();
+			ArrayList<String> ports = new ArrayList<String>();
 
-			if (modItem != null) {
+			for (int i = 0; i < portList.port().size(); i++) {
 
-				if (modItem.gate_instantiation() != null) {
+				ports.add(portList.port(i).getText());
 
-					fail(ERR_MSG_12, itemCon);
+			}
+
+			netlist.port_list = join(ports, ", ");
+
+			// initialise member variables
+
+			netlist.ports = new HashMap<String, Port>();
+
+			netlist.nets = new HashMap<String, Net>();
+
+			netlist.modules = new HashMap<String, Module>();
+
+			List<Module_itemContext> x = module.module_item();
+
+			// netlist.nets.put("1'b1", new Net("1'b1"));
+
+			// parse ports
+
+			parsePortList(module, netlist);
+
+			// main parsing loop:
+
+			// initially goes through the module items adding them to either
+			// netDefs
+			// or modDefs
+			// or throwing a parsing exception
+
+			ArrayList<Module_itemContext> netDefs = new ArrayList<Module_itemContext>();
+
+			ArrayList<Module_itemContext> modDefs = new ArrayList<Module_itemContext>();
+
+			for (int i = 0; i < x.size(); i++) {
+
+				Module_itemContext itemCon = x.get(i);
+
+				if (itemCon.port_declaration() != null) {
+
+					// port declaration
+
+					parsePortDeclaration(itemCon, netlist);
 
 					continue;
 				}
 
-				if (modItem.module_instantiation() != null) {
+				Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
 
-					modDefs.add(itemCon);
+				if (modItem != null) {
 
-					continue;
-				}
+					if (modItem.gate_instantiation() != null) {
 
-				Module_or_generate_item_declarationContext modItem2 = modItem
-						.module_or_generate_item_declaration();
+						fail(ERR_MSG_12, itemCon);
 
-				if (modItem2 != null) {
+						continue;
+					}
 
-					Net_declarationContext netDec = modItem2.net_declaration();
+					if (modItem.module_instantiation() != null) {
 
-					if (netDec != null) {
+						modDefs.add(itemCon);
 
-						// net declaration
+						continue;
+					}
 
-						Net_typeContext netType = netDec.net_type();
+					Module_or_generate_item_declarationContext modItem2 = modItem.module_or_generate_item_declaration();
 
-						if (netType.getText().equals("wire")) {
+					if (modItem2 != null) {
 
-							// net definition
+						Net_declarationContext netDec = modItem2.net_declaration();
 
-							netDefs.add(itemCon);
+						if (netDec != null) {
 
-							continue;
+							// net declaration
+
+							Net_typeContext netType = netDec.net_type();
+
+							if (netType.getText().equals("wire")) {
+
+								// net definition
+
+								netDefs.add(itemCon);
+
+								continue;
+							}
+
+						} else {
+
+							fail(ERR_MSG_6, itemCon);
 						}
-
-					} else {
-
-						fail(ERR_MSG_6, itemCon);
 					}
 				}
+
+				// Unsupported grammar
+
+				fail(ERR_MSG_4, itemCon);
+
 			}
 
-			// Unsupported grammar
+			// now process netDefs then modDefs
 
-			fail(ERR_MSG_4, itemCon);
+			// order is important: nets must be populated before processing
+			// modules
+
+			for (Module_itemContext entry : netDefs) {
+
+				parseNetDeclaration(entry, netlist);
+			}
+
+			for (Module_itemContext entry : modDefs) {
+
+				parseModuleInstantiation(entry, netlist);
+			}
+
+			checkAll(netlist);
+
+			netlistArr.add(netlist);
 
 		}
 
-		// now process netDefs then modDefs
-
-		// order is important: nets must be populated before processing modules
-
-		for (Module_itemContext entry : netDefs) {
-
-			parseNetDeclaration(entry, netlist);
-		}
-
-		for (Module_itemContext entry : modDefs) {
-
-			parseModuleInstantiation(entry, netlist);
-		}
-
-		checkAll(netlist);
-
-		return netlist;
+		return netlistArr;
 
 	}
 
-	private static void parsePortList(Module_declarationContext module,
-			Netlist netlist) throws UnsupportedGrammerException {
+	private static void parsePortList(Module_declarationContext module, Netlist netlist)
+			throws UnsupportedGrammerException {
 
 		if (module.list_of_ports() == null) {
 
@@ -322,11 +323,9 @@ public class VerilogParser {
 
 	}
 
-	private static void parseModuleInstantiation(Module_itemContext itemCon,
-			Netlist netlist) throws Exception {
+	private static void parseModuleInstantiation(Module_itemContext itemCon, Netlist netlist) throws Exception {
 
-		Module_or_generate_itemContext modItem = itemCon
-				.module_or_generate_item();
+		Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
 
 		Module_instantiationContext modIns = modItem.module_instantiation();
 
@@ -354,14 +353,11 @@ public class VerilogParser {
 
 			}
 
-			List_of_port_connectionsContext conList = i
-					.list_of_port_connections();
+			List_of_port_connectionsContext conList = i.list_of_port_connections();
 
-			List<Ordered_port_connectionContext> orderedCons = conList
-					.ordered_port_connection();
+			List<Ordered_port_connectionContext> orderedCons = conList.ordered_port_connection();
 
-			List<Named_port_connectionContext> namedCons = conList
-					.named_port_connection();
+			List<Named_port_connectionContext> namedCons = conList.named_port_connection();
 
 			boolean ordered = orderedCons.size() > 0;
 
@@ -382,8 +378,7 @@ public class VerilogParser {
 
 				ExpressionContext expr;
 
-				expr = ordered ? orderedCons.get(k).expression() : namedCons
-						.get(k).expression();
+				expr = ordered ? orderedCons.get(k).expression() : namedCons.get(k).expression();
 
 				List<TermContext> termList = expr.term();
 
@@ -411,13 +406,11 @@ public class VerilogParser {
 					fail("ERR_MSG_2");
 				}
 
-				String port_id = ordered ? modulePorts.get(k).id : namedCons
-						.get(k).port_identifier().getText();
+				String port_id = ordered ? modulePorts.get(k).id : namedCons.get(k).port_identifier().getText();
 
 				PinDirection dir = library1.getPort(id, port_id).direction;
 
-				processModulePinConnection(m, zp, port_id, port_con, itemCon,
-						dir, netlist);
+				processModulePinConnection(m, zp, port_id, port_con, itemCon, dir, netlist);
 
 			}
 
@@ -434,14 +427,12 @@ public class VerilogParser {
 
 	}
 
-	private static void parseNetDeclaration(Module_itemContext itemCon,
-			Netlist netlist) throws UnsupportedGrammerException {
+	private static void parseNetDeclaration(Module_itemContext itemCon, Netlist netlist)
+			throws UnsupportedGrammerException {
 
-		Module_or_generate_itemContext modItem = itemCon
-				.module_or_generate_item();
+		Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
 
-		Module_or_generate_item_declarationContext modItem2 = modItem
-				.module_or_generate_item_declaration();
+		Module_or_generate_item_declarationContext modItem2 = modItem.module_or_generate_item_declaration();
 
 		Net_declarationContext netDec = modItem2.net_declaration();
 
@@ -451,11 +442,9 @@ public class VerilogParser {
 
 		if (r != null) {
 
-			ExpressionContext expMSB = r.msb_constant_expression()
-					.constant_expression().expression();
+			ExpressionContext expMSB = r.msb_constant_expression().constant_expression().expression();
 
-			ExpressionContext expLSB = r.lsb_constant_expression()
-					.constant_expression().expression();
+			ExpressionContext expLSB = r.lsb_constant_expression().constant_expression().expression();
 
 			try {
 
@@ -471,8 +460,7 @@ public class VerilogParser {
 
 		}
 
-		List<Net_identifierContext> list = netDec.list_of_net_identifiers()
-				.net_identifier();
+		List<Net_identifierContext> list = netDec.list_of_net_identifiers().net_identifier();
 
 		for (int j = 0; j < list.size(); j++) {
 
@@ -498,8 +486,8 @@ public class VerilogParser {
 
 	}
 
-	private static void parsePortDeclaration(Module_itemContext itemCon,
-			Netlist netlist) throws UnsupportedGrammerException {
+	private static void parsePortDeclaration(Module_itemContext itemCon, Netlist netlist)
+			throws UnsupportedGrammerException {
 
 		Port_declarationContext portDec = itemCon.port_declaration();
 
@@ -567,11 +555,9 @@ public class VerilogParser {
 
 			if (r != null) {
 
-				ExpressionContext expMSB = r.msb_constant_expression()
-						.constant_expression().expression();
+				ExpressionContext expMSB = r.msb_constant_expression().constant_expression().expression();
 
-				ExpressionContext expLSB = r.lsb_constant_expression()
-						.constant_expression().expression();
+				ExpressionContext expLSB = r.lsb_constant_expression().constant_expression().expression();
 
 				try {
 
@@ -590,10 +576,8 @@ public class VerilogParser {
 		}
 	}
 
-	private static void processModulePinConnection(Module m,
-			ParserRuleContext zp, String port_id, String port_con,
-			Module_itemContext itemCon, PinDirection dir, Netlist netlist)
-			throws UnsupportedGrammerException {
+	private static void processModulePinConnection(Module m, ParserRuleContext zp, String port_id, String port_con,
+			Module_itemContext itemCon, PinDirection dir, Netlist netlist) throws UnsupportedGrammerException {
 
 		// this function processes a single port connection of a given module
 		// instantiation
@@ -697,8 +681,7 @@ public class VerilogParser {
 
 	}
 
-	private static void checkPortDirections(Netlist netlist)
-			throws UnsupportedGrammerException {
+	private static void checkPortDirections(Netlist netlist) throws UnsupportedGrammerException {
 
 		// verify no ports have UNKNOWN direction
 
@@ -715,8 +698,7 @@ public class VerilogParser {
 		}
 	}
 
-	private static void checkPortsAndNets(Netlist netlist)
-			throws UnsupportedGrammerException {
+	private static void checkPortsAndNets(Netlist netlist) throws UnsupportedGrammerException {
 
 		// verify that port definitions match any existing net definitions
 
@@ -730,8 +712,7 @@ public class VerilogParser {
 
 				if (net.start != port.start || net.end != port.end) {
 
-					String emsg = String.format(ERR_MSG_9, port.id, port.start,
-							port.end, net.id, net.start, net.end);
+					String emsg = String.format(ERR_MSG_9, port.id, port.start, port.end, net.id, net.start, net.end);
 
 					fail(emsg);
 

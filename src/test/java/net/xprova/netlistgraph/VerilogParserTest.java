@@ -1,5 +1,6 @@
 package net.xprova.netlistgraph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import junit.framework.TestCase;
@@ -16,7 +17,11 @@ public class VerilogParserTest extends TestCase {
 		// build Netlist from test resource file minimal.v
 		ClassLoader classLoader = getClass().getClassLoader();
 		String fullPath = classLoader.getResource("minimal.v").getPath();
-		Netlist nl = VerilogParser.parse(fullPath, new GateLibrary(""));
+		ArrayList<Netlist> netListArr = VerilogParser.parse(fullPath, new GateLibrary(""));
+
+		assert(netListArr.size() == 1);
+
+		Netlist nl = netListArr.get(0);
 
 		// test ports
 		assert (nl.ports.size() == 4);
@@ -57,7 +62,11 @@ public class VerilogParserTest extends TestCase {
 		// build Netlist from test resource file minimal.v
 		ClassLoader classLoader = getClass().getClassLoader();
 		String fullPath = classLoader.getResource("multibit.v").getPath();
-		Netlist nl = VerilogParser.parse(fullPath, new GateLibrary(""));
+		ArrayList<Netlist> netListArr = VerilogParser.parse(fullPath, new GateLibrary(""));
+
+		assert(netListArr.size() == 1);
+
+		Netlist nl = netListArr.get(0);
 
 		// test multi-bit port
 		assert (nl.nets.size() == 4);
