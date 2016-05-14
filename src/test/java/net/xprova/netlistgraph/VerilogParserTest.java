@@ -24,7 +24,7 @@ public class VerilogParserTest extends TestCase {
 		assert (nl.ports.get("clk").direction == PinDirection.IN);
 		assert (nl.ports.get("rst").direction == PinDirection.IN);
 		assert (nl.ports.get("y").direction == PinDirection.OUT);
-		
+
 		// test modules
 		assert(nl.modules.size() == 1);
 		assert(nl.modules.get("inv1").type.equals("NOT"));
@@ -36,9 +36,9 @@ public class VerilogParserTest extends TestCase {
 		assert(nl.nets.get("rst").id.equals("rst"));
 		assert(nl.nets.get("x").id.equals("x"));
 		assert(nl.nets.get("y").id.equals("y"));
-		
-		// test module connections		
-		HashMap<String, PinConnection> inv1Cons = nl.modules.get("inv1").connections;		
+
+		// test module connections
+		HashMap<String, PinConnection> inv1Cons = nl.modules.get("inv1").connections;
 		assert(inv1Cons.size() == 2);
 		assert(inv1Cons.get("a").dir == PinDirection.IN);
 		assert(inv1Cons.get("y").dir == PinDirection.OUT);
@@ -46,9 +46,9 @@ public class VerilogParserTest extends TestCase {
 		assert(inv1Cons.get("y").net.equals("y"));
 		assert(inv1Cons.get("a").bit == 0);
 		assert(inv1Cons.get("y").bit == 0);
-		
+
 		// test netlist name
-		assert(nl.name.equals("main"));		
+		assert(nl.name.equals("main"));
 
 	}
 
