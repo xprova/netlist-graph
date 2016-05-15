@@ -17,7 +17,7 @@ public class VerilogParserTest extends TestCase {
 		// build Netlist from test resource file minimal.v
 		ClassLoader classLoader = getClass().getClassLoader();
 		String fullPath = classLoader.getResource("minimal.v").getPath();
-		ArrayList<Netlist> netListArr = VerilogParser.parse(fullPath, new GateLibrary(""));
+		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath, new GateLibrary(""));
 
 		assert(netListArr.size() == 1);
 
@@ -62,7 +62,7 @@ public class VerilogParserTest extends TestCase {
 		// build Netlist from test resource file minimal.v
 		ClassLoader classLoader = getClass().getClassLoader();
 		String fullPath = classLoader.getResource("multibit.v").getPath();
-		ArrayList<Netlist> netListArr = VerilogParser.parse(fullPath, new GateLibrary(""));
+		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath, new GateLibrary(""));
 
 		assert(netListArr.size() == 1);
 

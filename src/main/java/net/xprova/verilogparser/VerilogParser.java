@@ -7,13 +7,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.misc.Interval;
 
 import net.xprova.netlist.GateLibrary;
 import net.xprova.netlist.Module;
+import net.xprova.netlist.Net;
+import net.xprova.netlist.Netlist;
 import net.xprova.netlist.PinConnection;
 import net.xprova.netlist.PinDirection;
 import net.xprova.netlist.Port;
@@ -42,8 +44,6 @@ import net.xprova.verilogparser.Verilog2001Parser.PrimaryContext;
 import net.xprova.verilogparser.Verilog2001Parser.RangeContext;
 import net.xprova.verilogparser.Verilog2001Parser.Source_textContext;
 import net.xprova.verilogparser.Verilog2001Parser.TermContext;
-import net.xprova.netlist.Net;
-import net.xprova.netlist.Netlist;
 
 /**
  *
@@ -117,13 +117,23 @@ public class VerilogParser {
 
 	// parsing
 
-	public static ArrayList<Netlist> parse(String verilogFile, GateLibrary library1) throws Exception {
-
-		// ANTLR parsing
+	public static ArrayList<Netlist> parseFile(String verilogFile, GateLibrary library) throws Exception {
 
 		FileInputStream stream1 = new FileInputStream(verilogFile);
 
-		ANTLRInputStream antlr = new ANTLRInputStream(stream1);
+		return parse(new ANTLRInputStream(stream1), library);
+
+	}
+
+	public static ArrayList<Netlist> parseString(String str, GateLibrary library) throws Exception {
+
+		return parse(new ANTLRInputStream(str), library);
+
+	}
+
+	private static ArrayList<Netlist> parse(ANTLRInputStream antlr, GateLibrary library1) throws Exception {
+
+		// ANTLR parsing
 
 		Verilog2001Lexer lexer1 = new Verilog2001Lexer(antlr);
 

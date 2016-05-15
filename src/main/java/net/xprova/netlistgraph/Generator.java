@@ -23,10 +23,17 @@ public class Generator {
 
 	}
 
-	public static void generate(NetlistGraph graph, String file)
-			throws Exception {
+	public static void generateFile(NetlistGraph graph, String file) throws Exception {
 
 		PrintWriter out = new PrintWriter(file, "UTF-8");
+
+		out.print(generateString(graph));
+
+		out.close();
+
+	}
+
+	public static String generateString(NetlistGraph graph) throws Exception {
 
 		ArrayList<String> wires = new ArrayList<String>();
 
@@ -90,14 +97,12 @@ public class Generator {
 				portList.add(String.format(form, graph.getPinName(v, d), d.name));
 			}
 
-			String str = String.format("%s %s (%s);", v.subtype, v.name,
-					sortjoin(portList, ", "));
+			String str = String.format("%s %s (%s);", v.subtype, v.name, sortjoin(portList, ", "));
 
 			mods.add(str);
 		}
 
-		String header = String.format("module %s (%s);", "topunit",
-				graph.getPortList());
+		String header = String.format("module %s (%s);", "topunit", graph.getPortList());
 
 		for (Range r : nets.values()) {
 
@@ -109,8 +114,7 @@ public class Generator {
 
 			} else {
 
-				str = String.format("%s [%d:%d] %s;", r.type, r.max, r.min,
-						r.name);
+				str = String.format("%s [%d:%d] %s;", r.type, r.max, r.min, r.name);
 			}
 
 			wires.add(str);
@@ -121,25 +125,25 @@ public class Generator {
 
 		Collections.sort(mods);
 
-		out.println(header);
+		StringBuilder strb = new StringBuilder(header);
+
+		strb.append("\n");
 
 		for (String str : wires) {
 
-			out.print("\t");
+			strb.append("\t").append(str).append("\n");
 
-			out.println(str);
 		}
 
 		for (String str : mods) {
 
-			out.print("\t");
+			strb.append("\t").append(str).append("\n");;
 
-			out.println(str);
 		}
 
-		out.println("endmodule");
+		strb.append("endmodule");
 
-		out.close();
+		return strb.toString();
 
 	}
 
