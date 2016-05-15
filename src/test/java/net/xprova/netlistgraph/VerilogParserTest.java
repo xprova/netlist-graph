@@ -14,10 +14,16 @@ public class VerilogParserTest extends TestCase {
 
 	public void testMinimal() throws Exception {
 
-		// build Netlist from test resource file minimal.v
 		ClassLoader classLoader = getClass().getClassLoader();
-		String fullPath = classLoader.getResource("minimal.v").getPath();
-		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath, new GateLibrary(""));
+
+		// prepare test GateLibrary
+		String fullPath1 = classLoader.getResource("simple.lib").getPath();
+		ArrayList<Netlist> libModules = VerilogParser.parseFile(fullPath1, new GateLibrary());
+		GateLibrary simpleLib = new GateLibrary(libModules);
+
+		// build Netlist from test resource file minimal.v
+		String fullPath2 = classLoader.getResource("minimal.v").getPath();
+		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath2, simpleLib);
 
 		assert(netListArr.size() == 1);
 
@@ -59,10 +65,16 @@ public class VerilogParserTest extends TestCase {
 
 	public void testMultibit() throws Exception {
 
-		// build Netlist from test resource file minimal.v
 		ClassLoader classLoader = getClass().getClassLoader();
-		String fullPath = classLoader.getResource("multibit.v").getPath();
-		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath, new GateLibrary(""));
+
+		// prepare test GateLibrary
+		String fullPath1 = classLoader.getResource("simple.lib").getPath();
+		ArrayList<Netlist> libModules = VerilogParser.parseFile(fullPath1, new GateLibrary());
+		GateLibrary simpleLib = new GateLibrary(libModules);
+
+		// build Netlist from test resource file minimal.v
+		String fullPath2 = classLoader.getResource("multibit.v").getPath();
+		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath2, simpleLib);
 
 		assert(netListArr.size() == 1);
 

@@ -12,20 +12,28 @@ public class GeneratorTest extends TestCase {
 	public void testGenerator() throws Exception {
 
 		// this tests Generator by attempting to re-parse generated Verilog
-		
-		GateLibrary lib = new GateLibrary("");
-		
+
 		ClassLoader classLoader = getClass().getClassLoader();
-		
+
+		// prepare test GateLibrary
+
+		String fullPath1 = classLoader.getResource("simple.lib").getPath();
+
+		ArrayList<Netlist> libModules = VerilogParser.parseFile(fullPath1, new GateLibrary());
+
+		GateLibrary simpleLib = new GateLibrary(libModules);
+
+		// load minimal.v
+
 		String fullPath = classLoader.getResource("minimal.v").getPath();
-		
-		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath, lib);
-		
+
+		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath, simpleLib);
+
 		NetlistGraph g = new NetlistGraph(netListArr.get(0));
-		
+
 		String verilogString = Generator.generateString(g);
-		
-		VerilogParser.parseString(verilogString, lib);
+
+		VerilogParser.parseString(verilogString, simpleLib); // try to parse g
 
 	}
 

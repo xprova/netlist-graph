@@ -72,7 +72,7 @@ public class VerilogParser {
 
 	private final static String ERR_MSG_12 = "gate instantiation is not supported";
 	private final static String ERR_MSG_13 = "unsupported module connection";
-	private final static String ERR_MSG_14 = "inout nets are not supported";
+
 	private final static String ERR_MSG_15 = "redefinition of module instance <%s>";
 	private final static String ERR_MSG_16 = "module %s does not exist in library";
 	private final static String ERR_MSG_17 = "non-scalar net <%s> must be explicitly declared";
@@ -531,13 +531,13 @@ public class VerilogParser {
 
 		} else if (inout != null) {
 
-			// portList = inout.list_of_port_identifiers().port_identifier();
-			//
-			// direction = PORTDIR.INOUT;
-			//
-			// r = inout.range();
+			 portList = inout.list_of_port_identifiers().port_identifier();
 
-			fail(ERR_MSG_14, itemCon);
+			 direction = PinDirection.INOUT;
+
+			 r = inout.range();
+
+//			fail(ERR_MSG_14, itemCon);
 
 		}
 

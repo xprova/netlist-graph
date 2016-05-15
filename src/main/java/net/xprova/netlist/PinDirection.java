@@ -1,6 +1,6 @@
 package net.xprova.netlist;
 
 public enum PinDirection {
-	
-	IN, OUT, UNKONWN
+
+	IN, OUT, INOUT, UNKONWN
 };

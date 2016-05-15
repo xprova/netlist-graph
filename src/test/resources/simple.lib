@@ -1,0 +1,26 @@
+// This is a simple library used to run tests
+
+module DFF(clk, reset, d, q);
+	input clk, reset, d;
+	output q;
+endmodule
+
+module AND(a, b, y);
+	input a, b;
+	output y;
+endmodule
+
+module OR(a, b, y);
+	input a, b;
+	output y;
+endmodule
+
+module NOT(a, y);
+	input a;
+	output y;
+endmodule
+
+module MUX2(i0, i1, s, y);
+	input i0, i1, s;
+	output y;
+endmodule
