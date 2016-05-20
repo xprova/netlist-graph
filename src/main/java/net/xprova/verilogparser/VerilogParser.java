@@ -176,9 +176,7 @@ public class VerilogParser {
 
 			}
 
-			netlist.port_list = join(ports, ", ");
-
-			// initialise member variables
+			// Initialize member variables
 
 			netlist.ports = new HashMap<String, Port>();
 
@@ -533,13 +531,13 @@ public class VerilogParser {
 
 		} else if (inout != null) {
 
-			 portList = inout.list_of_port_identifiers().port_identifier();
+			portList = inout.list_of_port_identifiers().port_identifier();
 
-			 direction = PinDirection.INOUT;
+			direction = PinDirection.INOUT;
 
-			 r = inout.range();
+			r = inout.range();
 
-//			fail(ERR_MSG_14, itemCon);
+			// fail(ERR_MSG_14, itemCon);
 
 		}
 
@@ -743,36 +741,6 @@ public class VerilogParser {
 		Interval int1 = context.getSourceInterval(); // get token interval
 
 		System.out.println(tokenStream.getText(int1));
-	}
-
-	private static String join(ArrayList<String> list, String delim) {
-
-		if (list.isEmpty()) {
-
-			return "";
-
-		} else if (list.size() == 1) {
-
-			return list.get(0);
-
-		} else {
-
-			StringBuilder sb = new StringBuilder(1024);
-
-			sb.append(list.get(0));
-
-			for (int i = 1; i < list.size(); i++) {
-
-				sb.append(delim);
-
-				sb.append(list.get(i));
-
-			}
-
-			return sb.toString();
-
-		}
-
 	}
 
 }

@@ -27,14 +27,6 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	private static final String clkPort = "CK";
 
-	public void addPort(String newPort) {
-
-		// TODO: new to find a better way to manage port list
-		// ideally it should be extracted automatically
-
-		port_list = port_list.concat(", ").concat(newPort);
-	}
-
 	public void printStats(String title) {
 
 		// TODO: this function needs to be moved elsewhere
@@ -100,7 +92,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		HashMap<String, Vertex> netMap = new HashMap<String, Vertex>();
 
-		port_list = netlist.port_list;
+		port_list = netlist.getPortList();
 
 		// first, add nets
 
@@ -126,8 +118,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 					} else {
 
-						throw new ConnectivityException(
-								"cannot determine direction of port " + net.id);
+						throw new ConnectivityException("cannot determine direction of port " + net.id);
 
 					}
 				}
@@ -380,6 +371,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
+	@Override
 	public boolean removeConnection(Vertex source, Vertex destination) {
 
 		if (super.removeConnection(source, destination)) {
@@ -407,14 +399,11 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
-	public boolean addConnection(Vertex source, Vertex destination, String port)
-			throws Exception {
+	public boolean addConnection(Vertex source, Vertex destination, String port) throws Exception {
 
-		if (destination.type == VertexType.NET
-				&& !getSources(destination).isEmpty()) {
+		if (destination.type == VertexType.NET && !getSources(destination).isEmpty()) {
 
-			throw new Exception("net <" + destination
-					+ "> already has a driver " + getSources(destination)
+			throw new Exception("net <" + destination + "> already has a driver " + getSources(destination)
 					+ ", cannot add source " + source);
 
 		}
@@ -437,6 +426,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
+	@Override
 	public Vertex getVertex(String name) {
 
 		for (Vertex v : vertices) {
@@ -455,8 +445,6 @@ public class NetlistGraph extends Graph<Vertex> {
 		return getPinName(s, d);
 
 	}
-
-
 
 	@Override
 	protected String getShape(Vertex v) {
@@ -542,8 +530,7 @@ public class NetlistGraph extends Graph<Vertex> {
 	}
 
 	@Override
-	public NetlistGraph getSubGraph(HashSet<Vertex> subVertices)
-			throws Exception {
+	public NetlistGraph getSubGraph(HashSet<Vertex> subVertices) throws Exception {
 
 		NetlistGraph subgraph = new NetlistGraph();
 
