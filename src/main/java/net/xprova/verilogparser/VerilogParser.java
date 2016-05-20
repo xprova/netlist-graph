@@ -186,6 +186,8 @@ public class VerilogParser {
 
 			netlist.modules = new HashMap<String, Module>();
 
+			netlist.orderedPorts = ports;
+
 			List<Module_itemContext> x = module.module_item();
 
 			// netlist.nets.put("1'b1", new Net("1'b1"));

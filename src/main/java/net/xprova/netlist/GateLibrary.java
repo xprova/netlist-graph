@@ -38,16 +38,11 @@ public class GateLibrary {
 
 			ArrayList<Port> ports = new ArrayList<Port>();
 
-			for (Port p : nl.ports.values()) {
+			for (Port p : nl.getOrderedPorts()) {
 
 				ports.add(new Port(p.id, p.direction));
 
 			}
-
-			ports.add(new Port("clk", PinDirection.IN));
-			ports.add(new Port("reset", PinDirection.IN));
-			ports.add(new Port("d", PinDirection.IN));
-			ports.add(new Port("q", PinDirection.OUT));
 
 			list.put(nl.name, ports);
 
