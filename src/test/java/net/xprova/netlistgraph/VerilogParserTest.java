@@ -25,7 +25,7 @@ public class VerilogParserTest extends TestCase {
 		String fullPath2 = classLoader.getResource("minimal.v").getPath();
 		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath2, simpleLib);
 
-		assert(netListArr.size() == 1);
+		assert (netListArr.size() == 1);
 
 		Netlist nl = netListArr.get(0);
 
@@ -76,7 +76,7 @@ public class VerilogParserTest extends TestCase {
 		String fullPath2 = classLoader.getResource("multibit.v").getPath();
 		ArrayList<Netlist> netListArr = VerilogParser.parseFile(fullPath2, simpleLib);
 
-		assert(netListArr.size() == 1);
+		assert (netListArr.size() == 1);
 
 		Netlist nl = netListArr.get(0);
 
@@ -87,6 +87,55 @@ public class VerilogParserTest extends TestCase {
 		assert (nl.nets.get("count").getCount() == 4);
 		assert (nl.nets.get("count").getHigher() == 3);
 		assert (nl.nets.get("count").getLower() == 0);
+
+	}
+
+	public void testPortOrder() throws Exception {
+
+		// library:
+		String LIB_STR = "module NOT (y, a); input a; output y; endmodule";
+
+		// should parse correctly:
+		ArrayList<String> LIB_OK = new ArrayList<String>();
+		LIB_OK.add("module top (a, y); input a; output y; NOT u1 (y, a); endmodule");
+		LIB_OK.add("module top (a, y); input a; output y; NOT u1 (.y(y), .a(a)); endmodule");
+		LIB_OK.add("module top (a, y); input a; output y; NOT u1 (.a(a), .y(y)); endmodule");
+
+		// should raise a ConnectivityException
+		ArrayList<String> LIB_PROB = new ArrayList<String>();
+		LIB_PROB.add("module top (a, y); input a; output y; NOT u1 (a, y); endmodule");
+		LIB_PROB.add("module top (a, y); input a; output y; NOT u1 (.y(a), .a(y)); endmodule");
+		LIB_PROB.add("module top (a, y); input a; output y; NOT u1 (.a(y), .y(a)); endmodule");
+
+		// test code
+
+		GateLibrary lib = new GateLibrary(VerilogParser.parseString(LIB_STR));
+
+		for (String str : LIB_OK) {
+
+			// this should execute without throwing any exceptions
+
+			new NetlistGraph(VerilogParser.parseString(str, lib).get(0));
+
+		}
+
+		for (String str : LIB_PROB) {
+
+			// this should throw a ConnectivityException
+
+			try {
+
+				new NetlistGraph(VerilogParser.parseString(str, lib).get(0));
+
+				fail("parser did not throw an expected ConnectivityException");
+
+			} catch (ConnectivityException e) {
+
+				// exception caught; test passed
+
+			}
+
+		}
 
 	}
 

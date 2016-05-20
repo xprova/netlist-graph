@@ -117,11 +117,33 @@ public class VerilogParser {
 
 	// parsing
 
+	public static ArrayList<Netlist> parseFile(String verilogFile) throws Exception {
+
+		// This form of the method is used for parsing library files.
+		// Modules in library files may not instantiate any modules within them;
+		// then can only contain port declarations, for example:
+		// module NOT (y, a); input a; output y; endmodule
+
+		return parseFile(verilogFile, new GateLibrary());
+
+	}
+
 	public static ArrayList<Netlist> parseFile(String verilogFile, GateLibrary library) throws Exception {
 
 		FileInputStream stream1 = new FileInputStream(verilogFile);
 
 		return parse(new ANTLRInputStream(stream1), library);
+
+	}
+
+	public static ArrayList<Netlist> parseString(String str) throws Exception {
+
+		// This form of the method is used for parsing library files.
+		// Modules in library files may not instantiate any modules within them;
+		// then can only contain port declarations, for example:
+		// module NOT (y, a); input a; output y; endmodule
+
+		return parseString(str, new GateLibrary());
 
 	}
 
