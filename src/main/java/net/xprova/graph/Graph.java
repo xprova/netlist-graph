@@ -11,7 +11,7 @@ import java.util.List;
 public class Graph<V> {
 
 	private final int maxLabelLength = 60;
-	
+
 	protected HashSet<V> vertices;
 
 	protected HashMap<V, HashSet<V>> sources, destinations;
@@ -82,24 +82,21 @@ public class Graph<V> {
 	}
 
 	public void addConnection(V source, V destination) throws Exception {
-		
+
 		if (!vertices.contains(source)) {
-			
-			throw new Exception ("graph does not contain source vertex <" + source + ">");
-		}
-		
-	if (!vertices.contains(destination)) {
-			
-			throw new Exception ("graph does not contain destination vertex <" + destination + ">");
+
+			throw new Exception("graph does not contain source vertex <" + source + ">");
 		}
 
-		
+		if (!vertices.contains(destination)) {
 
-			sources.get(destination).add(source);
+			throw new Exception("graph does not contain destination vertex <" + destination + ">");
+		}
 
-			destinations.get(source).add(destination);
+		sources.get(destination).add(source);
 
-	
+		destinations.get(source).add(destination);
+
 	}
 
 	public boolean removeConnection(V source, V destination) {
@@ -161,8 +158,9 @@ public class Graph<V> {
 	public HashSet<V> bfs(HashSet<V> start, int levels, boolean reverse) {
 
 		// does a breadth-first search from start for a certain number of levels
-		
-		// if reverse is true then the search is performed assumed reverse edge directions
+
+		// if reverse is true then the search is performed assumed reverse edge
+		// directions
 
 		HashSet<V> visited = new HashSet<V>();
 
@@ -176,8 +174,7 @@ public class Graph<V> {
 
 			for (V node : current) {
 
-				HashSet<V> nodeDestinations = reverse ? getSources(node)
-						: getDestinations(node);
+				HashSet<V> nodeDestinations = reverse ? getSources(node) : getDestinations(node);
 
 				nodeDestinations.removeAll(visited);
 
@@ -194,13 +191,14 @@ public class Graph<V> {
 		return visited;
 
 	}
-	
+
 	public HashSet<V> bfs(HashSet<V> start, HashSet<V> terminals, boolean reverse) {
 
 		// does a breadth-first search from start and ending at terminals
 		// returns hashset of visited nodes excluding start and terminals
-		
-		// if reverse is true then the search is performed assumed reverse edge directions
+
+		// if reverse is true then the search is performed assumed reverse edge
+		// directions
 
 		HashSet<V> visited = new HashSet<V>();
 
@@ -214,8 +212,7 @@ public class Graph<V> {
 
 			for (V node : current) {
 
-				HashSet<V> nodeDestinations = reverse ? getSources(node)
-						: getDestinations(node);
+				HashSet<V> nodeDestinations = reverse ? getSources(node) : getDestinations(node);
 
 				nodeDestinations.removeAll(visited);
 
@@ -239,8 +236,9 @@ public class Graph<V> {
 
 		// does a breadth-first search from start and ending at terminals
 		// returns hashset of visited nodes excluding start and terminals
-		
-		// if reverse is true then the search is performed assumed reverse edge directions
+
+		// if reverse is true then the search is performed assumed reverse edge
+		// directions
 
 		HashSet<V> visited = new HashSet<V>();
 
@@ -254,8 +252,7 @@ public class Graph<V> {
 
 			for (V node : current) {
 
-				HashSet<V> nodeDestinations = reverse ? getSources(node)
-						: getDestinations(node);
+				HashSet<V> nodeDestinations = reverse ? getSources(node) : getDestinations(node);
 
 				nodeDestinations.removeAll(visited);
 
@@ -275,27 +272,20 @@ public class Graph<V> {
 
 	}
 
-	public void printGraph(String file) throws FileNotFoundException,
-			UnsupportedEncodingException {
-
-		printGraph(file, vertices);
-
-	}
-
-	public void printGraph(String file, HashSet<V> vertices)
+	public void printGraph(String file, HashSet<V> subVertices, String[] ignorePinsArr)
 			throws FileNotFoundException, UnsupportedEncodingException {
 
-		List<String> ignorePins = Arrays.asList(new String[] {"CK", "SB", "RB", "sclk", "dclk", "r"});
-	
+		List<String> ignorePins = Arrays.asList(ignorePinsArr);
+
 		PrintWriter out = new PrintWriter(file, "UTF-8");
 
 		// print header
 
 		out.println("digraph graph1{");
 
-//		 out.println("\tsplines=ortho;");
+		// out.println("\tsplines=ortho;");
 
-		out.println("\trankdir=LR;");		
+		out.println("\trankdir=LR;");
 
 		// out.println("\tnodesep=1;");
 
@@ -305,22 +295,19 @@ public class Graph<V> {
 
 		// print graph nodes
 
-		for (V v : vertices) {
+		for (V v : subVertices) {
 
 			String vid = "n" + idCounter;
 
-String label = v.toString();
-			
-			if (label.length() > maxLabelLength) {
-				
-				label = label.substring(0, maxLabelLength-1);
-				
-			}
-			
-			
+			String label = v.toString();
 
-			out.printf("\t %s \t [label=\"%s\"] [%s];\n",
-					vid, label, getShape(v));
+			if (label.length() > maxLabelLength) {
+
+				label = label.substring(0, maxLabelLength - 1);
+
+			}
+
+			out.printf("\t %s \t [label=\"%s\"] [%s];\n", vid, label, getShape(v));
 
 			uniqueIDs.put(v, idCounter);
 
@@ -341,47 +328,23 @@ String label = v.toString();
 					String did = "n" + uniqueIDs.get(d);
 
 					String pin = getEdgeLabel(v, d);
-					
+
 					if (!ignorePins.contains(pin)) {
 
-					out.println("\t" + vid + " \t -> \t " + did + " [label="
-							+ pin + ", fontname=Arial];");
-					
+						out.println("\t" + vid + " \t -> \t " + did + " [label=" + pin + ", fontname=Arial];");
+
 					}
 
 				}
 
 			}
 		}
-		
-		//out.println("subgraph x1 {color=blue; ln1 ln2 ln3}");
-		
+
+		// out.println("subgraph x1 {color=blue; ln1 ln2 ln3}");
+
 		out.println("}");
 
 		out.close();
-
-	}
-
-	public void printGraph(String file, String[] ignoreVerticesArr)
-			throws FileNotFoundException, UnsupportedEncodingException {
-
-		HashSet<String> ignoreVertices = new HashSet<String>();
-
-		ignoreVertices.addAll(Arrays.asList(ignoreVerticesArr));
-
-		HashSet<V> graphVertices = new HashSet<V>();
-
-		for (V v : this.getVertices()) {
-
-			if (!ignoreVertices.contains(v.toString())) {
-
-				graphVertices.add(v);
-
-			}
-
-		}
-
-		printGraph(file, graphVertices);
 
 	}
 
@@ -471,9 +434,9 @@ String label = v.toString();
 					for (V ffd : temp) {
 
 						try {
-							
+
 							newGraph.addConnection(root, ffd);
-							
+
 						} catch (Exception e) {
 
 							e.printStackTrace();
