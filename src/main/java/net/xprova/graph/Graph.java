@@ -295,10 +295,10 @@ public class Graph<V> {
 	public Graph<V> reduce(HashSet<V> subVertices) {
 
 		// returns a sub-graph composed of subVertices
+		//
 		// connections are made between any two reduced graph vertices v1 and v2
 		// if the parent graph contains a path from v1 and v2 containing
-		// vertices
-		// not in subVertices
+		// vertices not in subVertices
 
 		Graph<V> newGraph = new Graph<V>();
 
@@ -321,8 +321,6 @@ public class Graph<V> {
 			visited.clear();
 
 			toExplore.add(root);
-
-			visited.add(root);
 
 			while (!toExplore.isEmpty()) {
 
@@ -354,8 +352,6 @@ public class Graph<V> {
 					new_destinations.removeAll(subVertices);
 
 					discovered.addAll(new_destinations);
-
-					visited.add(source);
 
 				}
 

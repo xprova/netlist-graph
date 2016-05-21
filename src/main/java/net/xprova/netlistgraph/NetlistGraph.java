@@ -16,6 +16,8 @@ import net.xprova.netlist.Port;
 
 public class NetlistGraph extends Graph<Vertex> {
 
+	private String name;
+
 	private HashSet<Vertex> modules, nets, inputs, outputs;
 
 	private MultiMap<Vertex, Vertex, String> pins; // pins are graph edges
@@ -28,7 +30,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	private static final String clkPort = "CK";
 
-	public void printStats(String title) {
+	public void printStats() {
 
 		// TODO: this function needs to be moved elsewhere
 
@@ -38,7 +40,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		int gateCount = modCount - flopCount;
 
-		System.out.printf("%-20s : %s\n", "Design", title);
+		System.out.printf("%-20s : %s\n", "Design", name);
 
 		System.out.printf("%-20s : %d\n", "Modules", modCount);
 
@@ -83,11 +85,15 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		modConnections = new MultiMap<Vertex, String, Vertex>();
 
+		name = "undefined";
+
 	}
 
 	public NetlistGraph(Netlist netlist) throws Exception {
 
 		this();
+
+		name = netlist.name;
 
 		// netMap: used to access Net vertices by their String name
 
@@ -549,6 +555,12 @@ public class NetlistGraph extends Graph<Vertex> {
 	public void addPort(String portName) {
 
 		orderedPorts.add(portName);
+
+	}
+
+	public String getName() {
+
+		return name;
 
 	}
 

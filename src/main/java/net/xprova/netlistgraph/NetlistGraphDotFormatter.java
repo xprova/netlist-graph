@@ -2,20 +2,22 @@ package net.xprova.netlistgraph;
 
 import net.xprova.dot.GraphDotFormatter;
 
-public class NetlistGraphDotFormatter implements GraphDotFormatter<Vertex> {
+public class NetlistGraphDotFormatter extends GraphDotFormatter<Vertex> {
 
 	private final NetlistGraph parent;
-
-	public NetlistGraphDotFormatter(NetlistGraph parent) {
-
-		this.parent = parent;
-
-	}
 
 	@Override
 	public String getEdgeLabel(Vertex s, Vertex d) {
 
 		return parent.getPinName(s, d);
+
+	}
+
+	public NetlistGraphDotFormatter(NetlistGraph parent) {
+
+		super();
+
+		this.parent = parent;
 
 	}
 
@@ -26,7 +28,7 @@ public class NetlistGraphDotFormatter implements GraphDotFormatter<Vertex> {
 
 			if ("input".equals(v.subtype) || "output".equals(v.subtype)) {
 
-				return "shape=circle, fixedsize=false, style=filled, color=plum, fontname=Arial";
+				return "shape=circle, fixedsize=false, style=\"filled, solid\", fillcolor=plum, color=black, fontname=Arial";
 
 			} else {
 
@@ -44,17 +46,17 @@ public class NetlistGraphDotFormatter implements GraphDotFormatter<Vertex> {
 
 				if (isVulnerable) {
 
-					return "shape=box, fixedsize=false, style=filled, color=indianred1, fontname=Arial";
+					return "shape=box, fixedsize=false, style=\"filled, solid\", fillcolor=indianred1, color=black, fontname=Arial";
 
 				} else {
 
-					return "shape=box, fixedsize=false, style=filled, color=limegreen, fontname=Arial";
+					return "shape=box, fixedsize=false, style=\"filled, solid\", fillcolor=limegreen, color=black, fontname=Arial";
 
 				}
 
 			} else {
 
-				return "shape=cds, fixedsize=false, style=filled, color=khaki1, fontname=Arial";
+				return "shape=cds, fixedsize=false, style=\"filled, solid\", fillcolor=khaki1, color=black, fontname=Arial, width=1, height=0.75";
 
 				// return "shape=box, fixedsize=false";
 			}

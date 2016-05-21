@@ -1,9 +1,60 @@
 package net.xprova.dot;
 
-public interface GraphDotFormatter<V> {
+import java.util.Arrays;
+import java.util.HashSet;
 
-	public String getEdgeLabel(V s, V d);
+public class GraphDotFormatter<V> {
 
-	public String getShape(V v);
+	private HashSet<String> ignoredVertices, ignoredEdges;
+
+	public GraphDotFormatter() {
+
+		ignoredVertices = new HashSet<String>();
+
+		ignoredEdges = new HashSet<String>();
+
+	}
+
+	public boolean getIgnoredVertex(String vName) {
+
+		return ignoredVertices.contains(vName);
+
+	}
+
+	public boolean getIgnoredEdge(String eName) {
+
+		return ignoredEdges.contains(eName);
+
+	}
+
+	public void setIgnoredEdges(String[] ignoredEdgesArr) {
+
+		ignoredEdges.clear();
+
+		ignoredEdges.addAll(Arrays.asList(ignoredEdgesArr));
+
+	}
+
+	public void setIgnoredVertices(String[] ignoredVerticesArr) {
+
+		ignoredVertices.clear();
+
+		ignoredVertices.addAll(Arrays.asList(ignoredVerticesArr));
+
+	}
+
+
+
+	public String getEdgeLabel(V s, V d) {
+
+		return "";
+
+	}
+
+	public String getShape(V v) {
+
+		return "shape=box, fixedsize=false, fontname=Arial";
+
+	}
 
 }

@@ -3,10 +3,8 @@ package net.xprova.dot;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 import net.xprova.graph.Graph;
 
@@ -15,10 +13,7 @@ public class GraphDotPrinter {
 	private static final int maxLabelLength = 60;
 
 	public static <V> void printGraph(String file, Graph<V> graph, GraphDotFormatter<V> formatter,
-			HashSet<V> subVertices, String[] ignoreEdgesArr)
-			throws FileNotFoundException, UnsupportedEncodingException {
-
-		List<String> ignoreEdges = Arrays.asList(ignoreEdgesArr);
+			HashSet<V> subVertices) throws FileNotFoundException, UnsupportedEncodingException {
 
 		PrintWriter out = new PrintWriter(file, "UTF-8");
 
@@ -40,21 +35,22 @@ public class GraphDotPrinter {
 
 		for (V v : subVertices) {
 
-			String vid = "n" + idCounter;
+			if (!formatter.getIgnoredVertex(v.toString())) {
 
-			String label = v.toString();
+				String vid = "n" + idCounter;
 
-			if (label.length() > maxLabelLength) {
+				String label = v.toString();
 
-				label = label.substring(0, maxLabelLength - 1);
+				if (label.length() > maxLabelLength)
+					label = label.substring(0, maxLabelLength - 1);
+
+				out.printf("\t %s \t [label=\"%s\"] [%s];\n", vid, label, formatter.getShape(v));
+
+				uniqueIDs.put(v, idCounter);
+
+				idCounter++;
 
 			}
-
-			out.printf("\t %s \t [label=\"%s\"] [%s];\n", vid, label, formatter.getShape(v));
-
-			uniqueIDs.put(v, idCounter);
-
-			idCounter++;
 
 		}
 
@@ -68,17 +64,25 @@ public class GraphDotPrinter {
 
 				if (graph.getVertices().contains(d)) {
 
-					String did = "n" + uniqueIDs.get(d);
+					boolean ignoredSource = formatter.getIgnoredVertex(v.toString());
 
-					String edge = formatter.getEdgeLabel(v, d);
+					boolean ignoredDestination = formatter.getIgnoredVertex(d.toString());
 
-					if (edge == null) {
+					if (!ignoredSource && !ignoredDestination) {
 
-						out.printf("\t %s \t -> \t %s [fontName=Arial]\n", vid, did);
+						String did = "n" + uniqueIDs.get(d);
 
-					} else if (!ignoreEdges.contains(edge)) {
+						String edge = formatter.getEdgeLabel(v, d);
 
-						out.printf("\t %s \t -> \t %s [label=%s, fontName=Arial]\n", vid, did, edge);
+						if (edge == null) {
+
+							out.printf("\t %s \t -> \t %s [fontName=Arial]\n", vid, did);
+
+						} else if (!formatter.getIgnoredEdge(edge)) {
+
+							out.printf("\t %s \t -> \t %s [label=%s, fontName=Arial]\n", vid, did, edge);
+
+						}
 
 					}
 

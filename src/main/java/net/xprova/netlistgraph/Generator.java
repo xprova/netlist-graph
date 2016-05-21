@@ -102,7 +102,7 @@ public class Generator {
 			mods.add(str);
 		}
 
-		String header = String.format("module %s (%s);", "topunit", graph.getPortList());
+		String header = String.format("module %s (%s);", graph.getName(), graph.getPortList());
 
 		for (Range r : nets.values()) {
 
@@ -137,7 +137,8 @@ public class Generator {
 
 		for (String str : mods) {
 
-			strb.append("\t").append(str).append("\n");;
+			strb.append("\t").append(str).append("\n");
+			;
 
 		}
 
