@@ -440,56 +440,6 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
-	@Override
-	protected String getEdgeLabel(Vertex s, Vertex d) {
-
-		return getPinName(s, d);
-
-	}
-
-	@Override
-	protected String getShape(Vertex v) {
-
-		if (v.type == VertexType.NET) {
-
-			if ("input".equals(v.subtype) || "output".equals(v.subtype)) {
-
-				return "shape=circle, fixedsize=false, style=filled, color=plum, fontname=Arial";
-
-			} else {
-
-				return "shape=circle, fixedsize=false, fontname=Arial";
-
-			}
-
-		} else {
-
-			boolean isFlop = getNet(v, "CK") != null;
-
-			if (isFlop) {
-
-				boolean isVulnerable = getNet(v, "V") != null;
-
-				if (isVulnerable) {
-
-					return "shape=box, fixedsize=false, style=filled, color=indianred1, fontname=Arial";
-
-				} else {
-
-					return "shape=box, fixedsize=false, style=filled, color=limegreen, fontname=Arial";
-
-				}
-
-			} else {
-
-				return "shape=cds, fixedsize=false, style=filled, color=khaki1, fontname=Arial";
-
-				// return "shape=box, fixedsize=false";
-			}
-
-		}
-	}
-
 	public String getPortList() {
 
 		return join(orderedPorts, ", ");
@@ -552,7 +502,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 				if (isConnected(source, d)) {
 
-					String port = this.getEdgeLabel(source, d);
+					String port = this.getPinName(source, d);
 
 					subgraph.addConnection(source, d, port);
 
