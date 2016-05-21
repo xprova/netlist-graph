@@ -30,42 +30,6 @@ public class Netlist {
 
 	}
 
-	public String getPortList() {
-
-		return join(orderedPorts, ", ");
-
-	}
-
-	private static String join(ArrayList<String> list, String delim) {
-
-		if (list.isEmpty()) {
-
-			return "";
-
-		} else if (list.size() == 1) {
-
-			return list.get(0);
-
-		} else {
-
-			StringBuilder sb = new StringBuilder(1024);
-
-			sb.append(list.get(0));
-
-			for (int i = 1; i < list.size(); i++) {
-
-				sb.append(delim);
-
-				sb.append(list.get(i));
-
-			}
-
-			return sb.toString();
-
-		}
-
-	}
-
 	public void print() {
 
 		print("Module name: " + name);

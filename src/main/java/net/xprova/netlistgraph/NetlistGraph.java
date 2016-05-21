@@ -1,5 +1,6 @@
 package net.xprova.netlistgraph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,7 +24,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	private MultiMap<Vertex, String, Vertex> modConnections;
 
-	private String port_list;
+	private ArrayList<String> orderedPorts; // as in header
 
 	private static final String clkPort = "CK";
 
@@ -92,7 +93,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		HashMap<String, Vertex> netMap = new HashMap<String, Vertex>();
 
-		port_list = netlist.getPortList();
+		orderedPorts = new ArrayList<String>(netlist.orderedPorts);
 
 		// first, add nets
 
@@ -491,7 +492,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	public String getPortList() {
 
-		return port_list;
+		return join(orderedPorts, ", ");
 	}
 
 	public Graph<Vertex> getModuleGraph() {
@@ -562,6 +563,42 @@ public class NetlistGraph extends Graph<Vertex> {
 		}
 
 		return subgraph;
+
+	}
+
+	private static String join(ArrayList<String> list, String delim) {
+
+		if (list.isEmpty()) {
+
+			return "";
+
+		} else if (list.size() == 1) {
+
+			return list.get(0);
+
+		} else {
+
+			StringBuilder sb = new StringBuilder(1024);
+
+			sb.append(list.get(0));
+
+			for (int i = 1; i < list.size(); i++) {
+
+				sb.append(delim);
+
+				sb.append(list.get(i));
+
+			}
+
+			return sb.toString();
+
+		}
+
+	}
+
+	public void addPort(String portName) {
+
+		orderedPorts.add(portName);
 
 	}
 
