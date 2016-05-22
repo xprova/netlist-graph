@@ -40,7 +40,13 @@ public class NetlistGraphDotFormatter extends GraphDotFormatter<Vertex> {
 
 			boolean isFlop = parent.getNet(v, "CK") != null;
 
-			if (isFlop) {
+			boolean isBlock = v.subtype.equals("BLOCK");
+
+			if (isBlock) {
+
+				return "shape=square, fixedsize=false, style=\"filled, solid\", fillcolor=white, color=black, fontname=Arial";
+
+			} else if (isFlop) {
 
 				boolean isVulnerable = parent.getNet(v, "V") != null;
 

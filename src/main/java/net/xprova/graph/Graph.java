@@ -148,6 +148,31 @@ public class Graph<V> {
 
 	}
 
+	public void combineVertices(V newV, HashSet<V> oldVs) throws Exception {
+
+		// combines vertices in oldVs into a new vertex newV
+
+		addVertex(newV);
+
+		// duplicate connections
+
+		for (V oldV : oldVs) {
+
+			for (V src : getSources(oldV))
+				addConnection(src, newV);
+
+			for (V dst : getDestinations(oldV))
+				addConnection(newV, dst);
+
+		}
+
+		// remove oldVs from graph
+
+		for (V oldV : oldVs)
+			removeVertex(oldV);
+
+	}
+
 	public HashSet<V> bfs(HashSet<V> start, int levels, boolean reverse) {
 
 		// does a breadth-first search from start for a certain number of levels
