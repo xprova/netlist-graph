@@ -286,12 +286,21 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		HashSet<Vertex> result = new HashSet<Vertex>();
 
-		for (Vertex v : modules) {
-
+		for (Vertex v : modules)
 			if (v.subtype.equals(type))
 				result.add(v);
 
-		}
+		return result;
+
+	}
+
+	public HashSet<Vertex> getModulesByTypes(Set<String> types) {
+
+		HashSet<Vertex> result = new HashSet<Vertex>();
+
+		for (Vertex v : modules)
+			if (types.contains(v.subtype))
+				result.add(v);
 
 		return result;
 
