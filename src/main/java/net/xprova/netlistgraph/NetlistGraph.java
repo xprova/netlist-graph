@@ -573,4 +573,33 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
+	public boolean isEqual(NetlistGraph graph2, boolean strict) {
+
+		// TODO: this function needs testing
+
+		// check name
+
+		if (!graph2.getName().equals(name))
+			return false;
+
+		// check port naming order
+
+		if (!graph2.getPortList().equals(getPortList()))
+			return false;
+
+		// check ports are the same
+
+		for (Vertex v2 : graph2.getIONets()) {
+			if (!v2.equals(getVertex(v2.name)))
+				return false;
+		}
+
+		// check connectivity
+
+		// need a traversal algorithm for this
+
+		return true;
+
+	}
+
 }
