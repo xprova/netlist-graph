@@ -1,0 +1,4 @@
+module NOT (y, a);
+    input a;
+    output y;
+endmodule

@@ -47,7 +47,7 @@ public class GraphDotFormatter<V> {
 
 	public String getEdgeLabel(V s, V d) {
 
-		return "";
+		return "\"\"";
 
 	}
 
