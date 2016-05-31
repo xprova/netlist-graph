@@ -28,47 +28,6 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	private ArrayList<String> orderedPorts; // as in header
 
-	private static final String clkPort = "CK";
-
-	public void printStats() {
-
-		// TODO: this function needs to be moved elsewhere
-
-		int modCount = modules.size();
-
-		int flopCount = getFlops(this).size();
-
-		int gateCount = modCount - flopCount;
-
-		System.out.printf("%-20s : %s\n", "Design", name);
-
-		System.out.printf("%-20s : %d\n", "Modules", modCount);
-
-		System.out.printf("%-20s : %d\n", "Flip-flops", flopCount);
-
-		System.out.printf("%-20s : %d\n", "Gates", gateCount);
-
-		System.out.println("");
-
-	}
-
-	private static HashSet<Vertex> getFlops(NetlistGraph graph) {
-
-		HashSet<Vertex> flops = new HashSet<Vertex>();
-
-		for (Vertex v : graph.getModules()) {
-
-			if (graph.getNet(v, clkPort) != null) {
-
-				flops.add(v);
-
-			}
-		}
-
-		return flops;
-
-	}
-
 	public NetlistGraph() {
 
 		super();
