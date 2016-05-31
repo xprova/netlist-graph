@@ -561,4 +561,18 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
+	public HashSet<Vertex> getInputs() {
+
+		return new HashSet<Vertex>(inputs);
+
+	}
+
+	public HashSet<Vertex> getOutputs() {
+
+		return new HashSet<Vertex>(outputs);
+
+	}
+
+
+
 }
