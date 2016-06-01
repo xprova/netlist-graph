@@ -1,6 +1,6 @@
 package net.xprova.netlistgraph;
 
-public class Vertex {
+public class Vertex implements Comparable<Vertex>{
 
 	public String name, subtype;
 
@@ -25,21 +25,29 @@ public class Vertex {
 		this.subtype = v.subtype;
 
 	}
-	
+
 	public Vertex() {
-		
+
 		this.name  = "n/a";
-		
+
 		this.type  = VertexType.NET;
-		
+
 		this.subtype  = "n/a";
-		
+
 	}
 
 	@Override
 	public String toString() {
-		
+
 		return name;
+
+	}
+
+	@Override
+	public int compareTo(Vertex other) {
+
+		return name.compareTo(other.name);
+
 
 	}
 
