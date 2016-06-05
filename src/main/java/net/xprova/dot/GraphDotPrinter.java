@@ -12,6 +12,12 @@ public class GraphDotPrinter {
 
 	private static final int maxLabelLength = 60;
 
+	public static <V> void printGraph(String file, Graph <V> graph) throws FileNotFoundException, UnsupportedEncodingException {
+
+		printGraph(file, graph, new GraphDotFormatter<V>(), graph.getVertices());
+
+	}
+
 	public static <V> void printGraph(String file, Graph<V> graph, GraphDotFormatter<V> formatter,
 			HashSet<V> subVertices) throws FileNotFoundException, UnsupportedEncodingException {
 
