@@ -573,6 +573,4 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
-
-
 }

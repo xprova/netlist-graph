@@ -11,14 +11,6 @@ public class MultiMap<K1, K2, V> {
 		map = new HashMap<K1, HashMap<K2, V>>();
 	}
 
-	public MultiMap(MultiMap<K1, K2, V> pins) {
-
-		// TODO: implement a shallow copy constructor
-
-		map = pins.map;
-
-	}
-
 	public void put(K1 key1, K2 key2, V value) {
 
 		HashMap<K2, V> subMap = map.get(key1);

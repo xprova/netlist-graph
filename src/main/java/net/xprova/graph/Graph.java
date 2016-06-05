@@ -173,6 +173,16 @@ public class Graph<V> {
 
 	}
 
+	public HashSet<V> bfs(V start, int levels, boolean reverse) {
+
+		HashSet<V> startSet = new HashSet<V>();
+
+		startSet.add(start);
+
+		return bfs(startSet, levels, reverse);
+
+	}
+
 	public HashSet<V> bfs(HashSet<V> start, int levels, boolean reverse) {
 
 		// does a breadth-first search from start for a certain number of levels
@@ -389,4 +399,5 @@ public class Graph<V> {
 		return newGraph;
 
 	}
+
 }
