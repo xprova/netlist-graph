@@ -1,6 +1,5 @@
-package net.xprova.verilogparser;
-
 // Generated from Verilog2001.g4 by ANTLR 4.5.3
+package net.xprova.verilogparser;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -3120,6 +3119,18 @@ public class Verilog2001BaseListener implements Verilog2001Listener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitNumber(Verilog2001Parser.NumberContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTiming_spec(Verilog2001Parser.Timing_specContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTiming_spec(Verilog2001Parser.Timing_specContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

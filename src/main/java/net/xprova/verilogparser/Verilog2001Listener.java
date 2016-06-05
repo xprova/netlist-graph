@@ -1,6 +1,5 @@
-package net.xprova.verilogparser;
-
 // Generated from Verilog2001.g4 by ANTLR 4.5.3
+package net.xprova.verilogparser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -2598,6 +2597,16 @@ public interface Verilog2001Listener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitNumber(Verilog2001Parser.NumberContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link Verilog2001Parser#timing_spec}.
+	 * @param ctx the parse tree
+	 */
+	void enterTiming_spec(Verilog2001Parser.Timing_specContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link Verilog2001Parser#timing_spec}.
+	 * @param ctx the parse tree
+	 */
+	void exitTiming_spec(Verilog2001Parser.Timing_specContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link Verilog2001Parser#attribute_instance}.
 	 * @param ctx the parse tree
