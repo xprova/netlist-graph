@@ -99,13 +99,11 @@ public class VerilogParser {
 
 		// form a string from tokens 1 through j-1
 
-		// String tokenStr = tokenStream.getText(new Interval(int1.a, j));
+		 String tokenStr = tokenStream.getText(new Interval(int1.a, j));
 
-		// return line text
+		 System.err.printf("Parser error (line %d): %s\n", lineNum, tokenStr);
 
-		String str2 = "line " + lineNum + ": " + errMsg;
-
-		fail(str2);
+		 throw new UnsupportedGrammerException("");
 
 	}
 
