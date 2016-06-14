@@ -19,6 +19,7 @@ import net.xprova.netlist.Netlist;
 import net.xprova.netlist.PinConnection;
 import net.xprova.netlist.PinDirection;
 import net.xprova.netlist.Port;
+import net.xprova.verilogparser.Verilog2001Parser.Continuous_assignContext;
 import net.xprova.verilogparser.Verilog2001Parser.DescriptionContext;
 import net.xprova.verilogparser.Verilog2001Parser.ExpressionContext;
 import net.xprova.verilogparser.Verilog2001Parser.Inout_declarationContext;
@@ -32,6 +33,7 @@ import net.xprova.verilogparser.Verilog2001Parser.Module_itemContext;
 import net.xprova.verilogparser.Verilog2001Parser.Module_or_generate_itemContext;
 import net.xprova.verilogparser.Verilog2001Parser.Module_or_generate_item_declarationContext;
 import net.xprova.verilogparser.Verilog2001Parser.Named_port_connectionContext;
+import net.xprova.verilogparser.Verilog2001Parser.Net_assignmentContext;
 import net.xprova.verilogparser.Verilog2001Parser.Net_declarationContext;
 import net.xprova.verilogparser.Verilog2001Parser.Net_identifierContext;
 import net.xprova.verilogparser.Verilog2001Parser.Net_typeContext;
@@ -99,11 +101,11 @@ public class VerilogParser {
 
 		// form a string from tokens 1 through j-1
 
-		 String tokenStr = tokenStream.getText(new Interval(int1.a, j));
+		String tokenStr = tokenStream.getText(new Interval(int1.a, j));
 
-		 System.err.printf("Parser error (line %d): %s\n", lineNum, tokenStr);
+		System.err.printf("Parser error (line %d): %s\n", lineNum, tokenStr);
 
-		 throw new UnsupportedGrammerException("");
+		throw new UnsupportedGrammerException("");
 
 	}
 
@@ -208,8 +210,6 @@ public class VerilogParser {
 
 			List<Module_itemContext> x = module.module_item();
 
-			// netlist.nets.put("1'b1", new Net("1'b1"));
-
 			// parse ports
 
 			parsePortList(module, netlist);
@@ -217,13 +217,13 @@ public class VerilogParser {
 			// main parsing loop:
 
 			// initially goes through the module items adding them to either
-			// netDefs
-			// or modDefs
-			// or throwing a parsing exception
+			// netDefs, modDefs, assignDefs or throwing a parsing exception
 
 			ArrayList<Module_itemContext> netDefs = new ArrayList<Module_itemContext>();
 
 			ArrayList<Module_itemContext> modDefs = new ArrayList<Module_itemContext>();
+
+			ArrayList<Module_itemContext> assignDefs = new ArrayList<Module_itemContext>();
 
 			for (int i = 0; i < x.size(); i++) {
 
@@ -282,6 +282,52 @@ public class VerilogParser {
 							fail(ERR_MSG_6, itemCon);
 						}
 					}
+
+					Continuous_assignContext conAssignItem = modItem.continuous_assign();
+
+					if (conAssignItem != null) {
+
+						List<Net_assignmentContext> assignList = conAssignItem.list_of_net_assignments()
+								.net_assignment();
+
+						for (Net_assignmentContext conAssign : assignList) {
+
+							// check lval
+
+							String lval = conAssign.net_lvalue().getText();
+
+							boolean isEscaped = lval.contains("\\");
+
+							boolean looksArr = lval.contains("[");
+
+							boolean looksConcat = lval.contains("{");
+
+							if (isEscaped || looksArr || looksConcat)
+								fail(ERR_MSG_4, itemCon);
+
+							// check rval
+
+							String rval = conAssign.expression().getText();
+
+							isEscaped = rval.contains("\\");
+
+							looksConcat = rval.contains("{");
+
+							boolean nestedConcat = (rval.indexOf("{") != rval.lastIndexOf("{"));
+
+							if (isEscaped || looksArr || nestedConcat)
+								fail(ERR_MSG_4, itemCon);
+
+							// item can be parsed:
+
+							assignDefs.add(itemCon);
+
+						}
+
+						continue;
+
+					}
+
 				}
 
 				// Unsupported grammar
@@ -303,6 +349,11 @@ public class VerilogParser {
 			for (Module_itemContext entry : modDefs) {
 
 				parseModuleInstantiation(entry, netlist);
+			}
+
+			for (Module_itemContext entry : assignDefs) {
+
+				parseAssignStatement(entry, netlist);
 			}
 
 			checkAll(netlist);
@@ -353,6 +404,48 @@ public class VerilogParser {
 
 	}
 
+	private static void parseAssignStatement(Module_itemContext itemCon, Netlist netlist) throws Exception {
+
+		List<Net_assignmentContext> assignList = itemCon.module_or_generate_item().continuous_assign()
+				.list_of_net_assignments().net_assignment();
+
+		for (Net_assignmentContext conAssign : assignList) {
+
+			String lval = conAssign.net_lvalue().getText();
+			String rval = conAssign.expression().getText();
+
+			boolean isConcatR = rval.contains("{");
+
+			if (isConcatR) {
+
+//				int k1 = rval.indexOf("}");
+//				int k2 = rval.indexOf("}");
+//
+//				String netNameStr = "hello";
+
+				throw new Exception("unsupported");
+
+
+			} else {
+
+				String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
+
+				Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+
+				netlist.modules.put(wireModID, m);
+
+				ParserRuleContext zpL = conAssign.net_lvalue();
+				ParserRuleContext zpR = conAssign.net_lvalue();
+
+				processModulePinConnection(m, zpL, "OUT", lval, itemCon, PinDirection.OUT, netlist);
+				processModulePinConnection(m, zpR, "IN", rval, itemCon, PinDirection.IN, netlist);
+
+			}
+
+		}
+
+	}
+
 	private static void parseModuleInstantiation(Module_itemContext itemCon, Netlist netlist) throws Exception {
 
 		Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
@@ -393,18 +486,7 @@ public class VerilogParser {
 
 			int conCount = ordered ? orderedCons.size() : namedCons.size();
 
-			// the test below is disabled
-			// if (conCount != modulePorts.size()) {
-			//
-			// String msg4 = String.format(ERR_MSG_10, id);
-			//
-			// fail(msg4, itemCon);
-			// }
-
 			for (int k = 0; k < conCount; k++) {
-
-				// String port_con =
-				// orderedCons.get(k).expression().getText();
 
 				ExpressionContext expr;
 

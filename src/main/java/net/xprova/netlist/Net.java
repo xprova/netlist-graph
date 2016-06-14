@@ -17,23 +17,24 @@ public class Net {
 	}
 
 	public int getLower() {
-		
+
 		return Math.min(start, end);
 	}
 
 	public int getHigher() {
-		
+
 		return Math.max(start, end);
 	}
-	
+
 	public int getCount() {
-		
+
 		return getHigher() - getLower() + 1;
 	}
 
-	public void print() {
+	@Override
+	public String toString() {
 
-		System.out.println(id + ", \t" + getCount() + " bit(s)");
+		return id + ", \t" + getCount() + " bit(s)";
 	}
 
 }

@@ -8,30 +8,27 @@ public class Module {
 
 	public String type; // type (e.g. DFF1)
 
-	public HashMap<String, PinConnection> connections; // port (String) ->
-														// PinConnection
+	// connections is : port (String) -> PinConnection
+	public HashMap<String, PinConnection> connections;
 
 	public Module() {
 
 		connections = new HashMap<String, PinConnection>();
 	}
 
-	public void print() {
+	public Module (String id, String type) {
 
-		String str = String
-				.format("id = %s, type = %s, connections:", id, type);
+		connections = new HashMap<String, PinConnection>();
 
-		System.out.println(str);
+		this.id = id;
+		this.type = type;
 
-		for (String entry : connections.keySet()) {
+	}
 
-			PinConnection con = connections.get(entry);
+	@Override
+	public String toString() {
 
-			str = String.format("%s -> %s[%d]", entry, con.net, con.bit);
-
-			System.out.println(str);
-
-		}
+		return id + " (" + type + ")";
 
 	}
 

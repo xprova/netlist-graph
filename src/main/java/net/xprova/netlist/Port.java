@@ -13,10 +13,10 @@ public class Port extends Net {
 	}
 
 	@Override
-	public void print() {
+	public String toString() {
 
 		int bits = Math.abs(end - start) + 1;
 
-		System.out.println(id + ", \t" + bits + " bit(s), \t" + direction);
+		return id + ", \t" + bits + " bit(s), \t" + direction;
 	}
 }

@@ -83,23 +83,40 @@ public class Generator {
 
 		for (Vertex v : graph.getModules()) {
 
-			ArrayList<String> portList = new ArrayList<String>();
+			if ("WIRE_NG_INTERNAL".equals(v.subtype)) {
 
-			String form = ".%s(%s)";
+				// virtual module created by an assignment statement
 
-			for (Vertex s : graph.getSources(v)) {
+				Vertex in = graph.getNet(v, "IN");
+				Vertex out = graph.getNet(v, "OUT");
 
-				portList.add(String.format(form, graph.getPinName(s, v), s.name));
+				String str = String.format("assign %s = %s;", out, in);
+
+				mods.add(str);
+
+			} else {
+
+				// actual (non-virtual) module
+
+				ArrayList<String> portList = new ArrayList<String>();
+
+				String form = ".%s(%s)";
+
+				for (Vertex s : graph.getSources(v)) {
+
+					portList.add(String.format(form, graph.getPinName(s, v), s.name));
+				}
+
+				for (Vertex d : graph.getDestinations(v)) {
+
+					portList.add(String.format(form, graph.getPinName(v, d), d.name));
+				}
+
+				String str = String.format("%s %s (%s);", v.subtype, v.name, sortjoin(portList, ", "));
+
+				mods.add(str);
+
 			}
-
-			for (Vertex d : graph.getDestinations(v)) {
-
-				portList.add(String.format(form, graph.getPinName(v, d), d.name));
-			}
-
-			String str = String.format("%s %s (%s);", v.subtype, v.name, sortjoin(portList, ", "));
-
-			mods.add(str);
 		}
 
 		String header = String.format("module %s (%s);", graph.getName(), graph.getPortList());
@@ -129,18 +146,11 @@ public class Generator {
 
 		strb.append("\n");
 
-		for (String str : wires) {
-
+		for (String str : wires)
 			strb.append("\t").append(str).append("\n");
 
-		}
-
-		for (String str : mods) {
-
+		for (String str : mods)
 			strb.append("\t").append(str).append("\n");
-			;
-
-		}
 
 		strb.append("endmodule");
 
