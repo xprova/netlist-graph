@@ -292,30 +292,26 @@ public class VerilogParser {
 
 						for (Net_assignmentContext conAssign : assignList) {
 
+							String lval = conAssign.net_lvalue().getText();
+							String rval = conAssign.expression().getText();
+
+							boolean isEscapedL = lval.startsWith("\\");
+							boolean isEscapedR = rval.startsWith("\\");
+
+							boolean looksArrL = lval.contains("[");
+							boolean looksArrR = rval.contains("[");
+
+							boolean looksConcatL = lval.contains("{");
+							boolean nestedConcatR = (rval.indexOf("{") != rval.lastIndexOf("{"));
+
 							// check lval
 
-							String lval = conAssign.net_lvalue().getText();
-
-							boolean isEscaped = lval.contains("\\");
-
-							boolean looksArr = lval.contains("[");
-
-							boolean looksConcat = lval.contains("{");
-
-							if (isEscaped || looksArr || looksConcat)
+							if (looksArrL || looksConcatL)
 								fail(ERR_MSG_4, itemCon);
 
 							// check rval
 
-							String rval = conAssign.expression().getText();
-
-							isEscaped = rval.contains("\\");
-
-							looksConcat = rval.contains("{");
-
-							boolean nestedConcat = (rval.indexOf("{") != rval.lastIndexOf("{"));
-
-							if (isEscaped || looksArr || nestedConcat)
+							if (isEscapedR || looksArrR || nestedConcatR)
 								fail(ERR_MSG_4, itemCon);
 
 							// item can be parsed:
@@ -418,13 +414,55 @@ public class VerilogParser {
 
 			if (isConcatR) {
 
-//				int k1 = rval.indexOf("}");
-//				int k2 = rval.indexOf("}");
-//
-//				String netNameStr = "hello";
+				int k1 = rval.indexOf("{");
+				int k2 = rval.indexOf("}");
 
-				throw new Exception("unsupported");
+				String netNamesStr = rval.substring(k1 + 1, k2);
 
+				String[] netNames = netNamesStr.split(",");
+
+				int bitIndex = 0;
+
+				for (String netName : netNames) {
+
+					String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
+
+					Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+
+					netlist.modules.put(wireModID, m);
+
+					// segment below in this for loop is from
+					// processModulePinConnection (tokens == 1)
+
+					m.connections.put("IN", new PinConnection(netName, 0, PinDirection.IN));
+					m.connections.put("OUT", new PinConnection(lval, bitIndex, PinDirection.OUT));
+
+					Net net = netlist.nets.get(netName);
+
+					if (net == null) {
+
+						// implicit net declaration
+
+						netlist.nets.put(netName, new Net(netName));
+
+					} else {
+
+						// check if bit 0 is in net range
+
+						if (!netlist.nets.get(netName).inRange(0)) {
+
+							String msg1_a = "net <%s> does not have bit <%d>";
+
+							String msg2 = String.format(msg1_a, netName, 0);
+
+							fail(msg2, itemCon);
+						}
+
+					}
+
+					bitIndex += 1;
+
+				}
 
 			} else {
 
