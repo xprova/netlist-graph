@@ -139,4 +139,21 @@ public class VerilogParserTest extends TestCase {
 
 	}
 
+	public void testEscapedIdentifiers() throws Exception {
+
+		String str = "module \\top():: (\\a) ); input \\a) ; wire \\hello;; ; NOT u1 (\\hello;; , \\a) ); endmodule ";
+
+		ClassLoader classLoader = getClass().getClassLoader();
+
+		// prepare test GateLibrary
+		String fullPath1 = classLoader.getResource("simple.lib").getPath();
+		ArrayList<Netlist> libModules = VerilogParser.parseFile(fullPath1, new GateLibrary());
+		GateLibrary simpleLib = new GateLibrary(libModules);
+
+		Netlist nl = VerilogParser.parseString(str, simpleLib).get(0);
+
+		assertEquals(nl.name, "\\top()::");
+
+	}
+
 }
