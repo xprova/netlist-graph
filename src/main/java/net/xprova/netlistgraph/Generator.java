@@ -74,7 +74,7 @@ public class Generator {
 
 				if ("input".equals(v.subtype) || "output".equals(v.subtype)) {
 
-					ports.add(name);
+					ports.add(getEscaped(name));
 				}
 
 			}
@@ -90,7 +90,7 @@ public class Generator {
 				Vertex in = graph.getNet(v, "IN");
 				Vertex out = graph.getNet(v, "OUT");
 
-				String str = String.format("assign %s = %s;", out, in);
+				String str = String.format("assign %s = %s;", out.name, getEscaped(in.name));
 
 				mods.add(str);
 
@@ -104,15 +104,15 @@ public class Generator {
 
 				for (Vertex s : graph.getSources(v)) {
 
-					portList.add(String.format(form, graph.getPinName(s, v), s.name));
+					portList.add(String.format(form, getEscaped(graph.getPinName(s, v)), getEscaped(s.name)));
 				}
 
 				for (Vertex d : graph.getDestinations(v)) {
 
-					portList.add(String.format(form, graph.getPinName(v, d), d.name));
+					portList.add(String.format(form, getEscaped(graph.getPinName(v, d)), getEscaped(d.name)));
 				}
 
-				String str = String.format("%s %s (%s);", v.subtype, v.name, sortjoin(portList, ", "));
+				String str = String.format("%s %s (%s);", v.subtype, getEscaped(v.name), sortjoin(portList, ", "));
 
 				mods.add(str);
 
@@ -127,11 +127,11 @@ public class Generator {
 
 			if (r.min == 0 && r.max == 0) {
 
-				str = String.format("%s %s;", r.type, r.name);
+				str = String.format("%s %s;", r.type, getEscaped(r.name));
 
 			} else {
 
-				str = String.format("%s [%d:%d] %s;", r.type, r.max, r.min, r.name);
+				str = String.format("%s [%d:%d] %s;", r.type, r.max, r.min, getEscaped(r.name));
 			}
 
 			wires.add(str);
@@ -187,6 +187,12 @@ public class Generator {
 			return sb.toString();
 
 		}
+
+	}
+
+	private static String getEscaped(String id) {
+
+		return id.startsWith("\\") ? id + " " : id;
 
 	}
 
