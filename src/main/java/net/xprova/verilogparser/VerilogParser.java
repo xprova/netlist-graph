@@ -298,8 +298,8 @@ public class VerilogParser {
 							boolean isEscapedL = lval.startsWith("\\");
 							boolean isEscapedR = rval.startsWith("\\");
 
-							boolean looksArrL = lval.contains("[");
-							boolean looksArrR = rval.contains("[");
+							boolean looksArrL = lval.contains(":");
+							boolean looksArrR = rval.contains(":");
 
 							boolean looksConcatL = lval.contains("{");
 							boolean nestedConcatR = (rval.indexOf("{") != rval.lastIndexOf("{"));
@@ -473,7 +473,7 @@ public class VerilogParser {
 				netlist.modules.put(wireModID, m);
 
 				ParserRuleContext zpL = conAssign.net_lvalue();
-				ParserRuleContext zpR = conAssign.net_lvalue();
+				ParserRuleContext zpR = conAssign.expression();
 
 				processModulePinConnection(m, zpL, "OUT", lval, itemCon, PinDirection.OUT, netlist);
 				processModulePinConnection(m, zpR, "IN", rval, itemCon, PinDirection.IN, netlist);
