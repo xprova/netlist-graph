@@ -50,7 +50,7 @@ public class VerilogParserTest extends TestCase {
 
 		// test module connections
 		HashMap<String, PinConnection> inv1Cons = nl.modules.get("inv1").connections;
-		assertEquals(inv1Cons.size() , 2);
+		assertEquals(inv1Cons.size(), 2);
 		assertEquals(inv1Cons.get("a").dir, PinDirection.IN);
 		assertEquals(inv1Cons.get("y").dir, PinDirection.OUT);
 		assertEquals(inv1Cons.get("a").net, "x");
@@ -136,6 +136,28 @@ public class VerilogParserTest extends TestCase {
 			}
 
 		}
+
+	}
+
+	public void testAssignStatement() throws Exception {
+
+		// library:
+		String LIB_STR = ""; //module NOT (y, a); input a; output y; endmodule";
+
+		String str1 = "module top(count, a); input [3:0] count; output a; assign a = count[0]; endmodule";
+		String str2 = "module top(b, a); input b; output a; assign a = b; endmodule";
+
+		// test code
+
+		GateLibrary lib = new GateLibrary(VerilogParser.parseString(LIB_STR));
+
+		NetlistGraph ng = new NetlistGraph(VerilogParser.parseString(str1, lib).get(0));
+
+		assertEquals(ng.getModules().size(), 1);
+
+		assertEquals(ng.getModulesByType("WIRE_NG_INTERNAL").size(), 1);
+
+		new NetlistGraph(VerilogParser.parseString(str2, lib).get(0));
 
 	}
 
