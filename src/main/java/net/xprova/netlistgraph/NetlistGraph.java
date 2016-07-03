@@ -7,6 +7,7 @@ import java.util.Set;
 
 import net.xprova.graph.Graph;
 import net.xprova.graph.MultiMap;
+import net.xprova.graph.Pair;
 import net.xprova.netlist.Module;
 import net.xprova.netlist.Net;
 import net.xprova.netlist.Netlist;
@@ -172,6 +173,120 @@ public class NetlistGraph extends Graph<Vertex> {
 		}
 
 		checkDrivers();
+
+	}
+
+	public NetlistGraph(NetlistGraph other) {
+
+		super();
+
+		// create map to keep track of vertex correspondences between this and
+		// other
+
+		HashMap<Vertex, Vertex> corr = new HashMap<Vertex, Vertex>();
+
+		// clone name
+
+		name = other.name;
+
+		// clone vertices
+
+		// (Initialise modules and nets since these are populated by
+		// NetlistGraph addVertex)
+
+		modules = new HashSet<Vertex>();
+
+		nets = new HashSet<Vertex>();
+
+		for (Vertex ov : other.vertices) {
+
+			Vertex v = new Vertex(ov);
+
+			this.addVertex(v);
+
+			corr.put(ov, v);
+
+		}
+
+		// clone sources and destinations
+
+		for (Vertex ov : other.vertices) {
+
+			Vertex v = corr.get(ov);
+
+			HashSet<Vertex> srcSet = new HashSet<Vertex>();
+			HashSet<Vertex> dstSet = new HashSet<Vertex>();
+
+			for (Vertex osrc : other.getSources(ov))
+				srcSet.add(corr.get(osrc));
+
+			for (Vertex odst : other.getDestinations(ov))
+				dstSet.add(corr.get(odst));
+
+			sources.put(v, srcSet);
+			destinations.put(v, dstSet);
+
+		}
+
+		// clone hashsets inputs and outputs
+
+		inputs = new HashSet<Vertex>();
+		outputs = new HashSet<Vertex>();
+
+		// for (Vertex ov : other.modules)
+		// modules.add(corr.get(ov));
+		//
+		// for (Vertex ov : other.nets)
+		// nets.add(corr.get(ov));
+
+		for (Vertex ov : other.inputs)
+			inputs.add(corr.get(ov));
+
+		for (Vertex ov : other.outputs)
+			outputs.add(corr.get(ov));
+
+		// clone pins
+
+		pins = new MultiMap<Vertex, Vertex, String>();
+
+		for (Pair<Pair<Vertex, Vertex>, String> entry : other.pins.entrySet()) {
+
+			Vertex ov1 = entry.first.first;
+			Vertex ov2 = entry.first.second;
+
+			Vertex v1 = corr.get(ov1);
+			Vertex v2 = corr.get(ov2);
+
+			String s = entry.second;
+
+			pins.put(v1, v2, s);
+
+		}
+
+		// clone modConnections
+
+		modConnections = new MultiMap<Vertex, String, Vertex>();
+
+		for (Pair<Pair<Vertex, String>, Vertex> entry : other.modConnections.entrySet()) {
+
+			Vertex ov1 = entry.first.first;
+			Vertex ov2 = entry.second;
+
+			Vertex v1 = corr.get(ov1);
+			Vertex v2 = corr.get(ov2);
+
+			String s = entry.first.second;
+
+			modConnections.put(v1, s, v2);
+
+		}
+
+		// clone orderedPorts
+
+		orderedPorts = new ArrayList<String>();
+
+		for (String s : other.orderedPorts)
+			orderedPorts.add(s);
 
 	}
 
