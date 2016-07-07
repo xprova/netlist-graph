@@ -295,7 +295,7 @@ public class VerilogParser {
 							String lval = conAssign.net_lvalue().getText();
 							String rval = conAssign.expression().getText();
 
-							boolean isEscapedL = lval.startsWith("\\");
+//							boolean isEscapedL = lval.startsWith("\\");
 							boolean isEscapedR = rval.startsWith("\\");
 
 							boolean looksArrL = lval.contains(":");
