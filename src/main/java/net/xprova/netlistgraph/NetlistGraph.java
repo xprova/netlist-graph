@@ -688,4 +688,195 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
+	public void expand(Vertex module, NetlistGraph subGraphOrg) throws Exception {
+
+		NetlistGraph subGraph = new NetlistGraph(subGraphOrg);
+
+		HashSet<Vertex> modInputs = getSources(module);
+
+		HashSet<Vertex> modOutputs = getDestinations(module);
+
+		HashMap<String, Vertex> subInputs = new HashMap<String, Vertex>();
+
+		HashMap<String, Vertex> subOutputs = new HashMap<String, Vertex>();
+
+		for (Vertex v : subGraph.getInputs())
+			subInputs.put(v.name, v);
+
+		for (Vertex v : subGraph.getOutputs())
+			subOutputs.put(v.name, v);
+
+		// check matching in IO connections
+
+		for (Vertex mi : modInputs) {
+
+			String pin = getPinName(mi, module);
+
+			if (!subInputs.containsKey(pin)) {
+
+				String strE = String.format("module port <%s> not defined as input in sub-graph", mi.name);
+
+				throw new Exception(strE);
+			}
+
+		}
+
+		for (Vertex mo : modOutputs) {
+
+			String pin = getPinName(module, mo);
+
+			if (!subOutputs.containsKey(pin)) {
+
+				String strE = String.format("module does not have <%s> input as in sub-graph", mo.name);
+
+				throw new Exception(strE);
+			}
+
+		}
+
+		HashMap<Vertex, Vertex> corr = include(subGraph);
+
+		// making input connections
+
+		for (Vertex mi : modInputs) {
+
+			String pin = getPinName(mi, module);
+
+			Vertex si = corr.get(subInputs.get(pin));
+
+			// connect mi to all the destinations of si
+
+			for (Vertex d : getDestinations(si)) {
+
+				String innerPin = getPinName(si, d);
+
+				removeConnection(si, d);
+
+				addConnection(mi, d, innerPin);
+
+			 }
+
+			// remove subgraph input vertex
+
+			removeVertex(si);
+
+			// remove module input connections
+
+			removeConnection(mi, module);
+
+
+		}
+
+		// making output connections
+
+		for (Vertex mo : modOutputs) {
+
+			String pin = getPinName(module, mo);
+
+			Vertex so = corr.get(subOutputs.get(pin));
+
+			// connect source of mo to so
+
+			Vertex soDriver  = getSourceModule(so);
+
+			String innerPin = getPinName(soDriver, so);
+
+			removeConnection(module, mo);
+
+			removeConnection(soDriver, so);
+
+			addConnection(soDriver, mo, innerPin);
+
+			removeVertex(so);
+
+
+		}
+
+		removeVertex(module);
+
+	}
+
+	private HashMap<Vertex, Vertex> include(NetlistGraph other) {
+
+		// create map to keep track of vertex correspondences between this and
+		// other
+
+		HashMap<Vertex, Vertex> corr = new HashMap<Vertex, Vertex>();
+
+		// clone vertices
+
+		for (Vertex ov : other.vertices) {
+
+			Vertex v = new Vertex(ov);
+
+			this.addVertex(v);
+
+			corr.put(ov, v);
+
+		}
+
+		// clone sources and destinations
+
+		for (Vertex ov : other.vertices) {
+
+			Vertex v = corr.get(ov);
+
+			HashSet<Vertex> srcSet = new HashSet<Vertex>();
+			HashSet<Vertex> dstSet = new HashSet<Vertex>();
+
+			for (Vertex osrc : other.getSources(ov))
+				srcSet.add(corr.get(osrc));
+
+			for (Vertex odst : other.getDestinations(ov))
+				dstSet.add(corr.get(odst));
+
+			sources.put(v, srcSet);
+			destinations.put(v, dstSet);
+
+		}
+
+		// clone hashsets inputs and outputs
+
+		for (Vertex ov : other.inputs)
+			inputs.add(corr.get(ov));
+
+		for (Vertex ov : other.outputs)
+			outputs.add(corr.get(ov));
+
+		// clone pins
+
+		for (Pair<Pair<Vertex, Vertex>, String> entry : other.pins.entrySet()) {
+
+			Vertex ov1 = entry.first.first;
+			Vertex ov2 = entry.first.second;
+
+			Vertex v1 = corr.get(ov1);
+			Vertex v2 = corr.get(ov2);
+
+			String s = entry.second;
+
+			pins.put(v1, v2, s);
+
+		}
+
+		// clone modConnections
+
+		for (Pair<Pair<Vertex, String>, Vertex> entry : other.modConnections.entrySet()) {
+
+			Vertex ov1 = entry.first.first;
+			Vertex ov2 = entry.second;
+
+			Vertex v1 = corr.get(ov1);
+			Vertex v2 = corr.get(ov2);
+
+			String s = entry.first.second;
+
+			modConnections.put(v1, s, v2);
+
+		}
+
+		return corr;
+
+	}
+
 }

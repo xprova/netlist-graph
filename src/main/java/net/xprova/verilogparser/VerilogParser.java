@@ -105,6 +105,8 @@ public class VerilogParser {
 
 		System.err.printf("Parser error (line %d): %s\n", lineNum, tokenStr);
 
+		System.err.println(errMsg);
+
 		throw new UnsupportedGrammerException("");
 
 	}
