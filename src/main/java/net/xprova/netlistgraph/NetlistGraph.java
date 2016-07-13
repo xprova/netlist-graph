@@ -755,7 +755,19 @@ public class NetlistGraph extends Graph<Vertex> {
 			Vertex n1 = corr.get(o);
 			Vertex n2 = getNet(module, o.name);
 
-			System.out.println("merging " + n1 + " into " + n2);
+			// note: n2 may be null if output port o is not used
+
+			// in this case we create a dummy node to connect to
+
+			if (n2 == null) {
+
+				String n2Name = "unused" + getNets().size();
+
+				n2 = new Vertex(n2Name, VertexType.NET, "WIRE");
+
+				addVertex(n2);
+
+			}
 
 			joinNets(n1, n2, n2);
 
