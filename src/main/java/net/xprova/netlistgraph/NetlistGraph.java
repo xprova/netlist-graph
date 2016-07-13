@@ -773,6 +773,27 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		}
 
+		// rename added nets and modules
+
+		HashSet<Vertex> nonIO = subGraph.getNets();
+
+		nonIO.removeAll(subGraph.getIONets());
+
+		for (Vertex ns : nonIO) {
+
+			Vertex n = corr.get(ns);
+
+			n.name = module.name + "_" + n.name;
+		}
+
+		for (Vertex ms : subGraph.modules) {
+
+			Vertex n = corr.get(ms);
+
+			n.name = module.name + "_" + n.name;
+
+		}
+
 		// finally, remove module (this automatically removes all of its
 		// connections)
 
