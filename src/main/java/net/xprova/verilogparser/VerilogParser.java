@@ -81,7 +81,7 @@ public class VerilogParser {
 
 	// exception generation and handling
 
-	private static void fail(String errMsg, Module_itemContext itemCon) throws UnsupportedGrammerException {
+	private static void fail(String filename, String errMsg, Module_itemContext itemCon) throws UnsupportedGrammerException {
 
 		Interval int1 = itemCon.getSourceInterval(); // get token interval
 
@@ -103,7 +103,7 @@ public class VerilogParser {
 
 		String tokenStr = tokenStream.getText(new Interval(int1.a, j));
 
-		System.err.printf("Parser error (line %d): %s\n", lineNum, tokenStr);
+		System.err.printf("Parser error (%s:%d): %s\n", filename, lineNum, tokenStr);
 
 		System.err.println(errMsg);
 
@@ -134,7 +134,7 @@ public class VerilogParser {
 
 		FileInputStream stream1 = new FileInputStream(verilogFile);
 
-		return parse(new ANTLRInputStream(stream1), library);
+		return parse(verilogFile, new ANTLRInputStream(stream1), library);
 
 	}
 
@@ -151,11 +151,11 @@ public class VerilogParser {
 
 	public static ArrayList<Netlist> parseString(String str, GateLibrary library) throws Exception {
 
-		return parse(new ANTLRInputStream(str), library);
+		return parse("STRING", new ANTLRInputStream(str), library);
 
 	}
 
-	private static ArrayList<Netlist> parse(ANTLRInputStream antlr, GateLibrary library1) throws Exception {
+	private static ArrayList<Netlist> parse(String filename, ANTLRInputStream antlr, GateLibrary library1) throws Exception {
 
 		// ANTLR parsing
 
@@ -235,7 +235,7 @@ public class VerilogParser {
 
 					// port declaration
 
-					parsePortDeclaration(itemCon, netlist);
+					parsePortDeclaration(filename, itemCon, netlist);
 
 					continue;
 				}
@@ -246,7 +246,7 @@ public class VerilogParser {
 
 					if (modItem.gate_instantiation() != null) {
 
-						fail(ERR_MSG_12, itemCon);
+						fail(filename, ERR_MSG_12, itemCon);
 
 						continue;
 					}
@@ -281,7 +281,7 @@ public class VerilogParser {
 
 						} else {
 
-							fail(ERR_MSG_6, itemCon);
+							fail(filename, ERR_MSG_6, itemCon);
 						}
 					}
 
@@ -309,12 +309,12 @@ public class VerilogParser {
 							// check lval
 
 							if (looksArrL || looksConcatL)
-								fail(ERR_MSG_4, itemCon);
+								fail(filename, ERR_MSG_4, itemCon);
 
 							// check rval
 
 							if (isEscapedR || looksArrR || nestedConcatR)
-								fail(ERR_MSG_4, itemCon);
+								fail(filename, ERR_MSG_4, itemCon);
 
 							// item can be parsed:
 
@@ -330,7 +330,7 @@ public class VerilogParser {
 
 				// Unsupported grammar
 
-				fail(ERR_MSG_4, itemCon);
+				fail(filename, ERR_MSG_4, itemCon);
 
 			}
 
@@ -341,17 +341,17 @@ public class VerilogParser {
 
 			for (Module_itemContext entry : netDefs) {
 
-				parseNetDeclaration(entry, netlist);
+				parseNetDeclaration(filename, entry, netlist);
 			}
 
 			for (Module_itemContext entry : modDefs) {
 
-				parseModuleInstantiation(entry, netlist);
+				parseModuleInstantiation(filename, entry, netlist);
 			}
 
 			for (Module_itemContext entry : assignDefs) {
 
-				parseAssignStatement(entry, netlist);
+				parseAssignStatement(filename, entry, netlist);
 			}
 
 			checkAll(netlist);
@@ -402,7 +402,7 @@ public class VerilogParser {
 
 	}
 
-	private static void parseAssignStatement(Module_itemContext itemCon, Netlist netlist) throws Exception {
+	private static void parseAssignStatement(String filename, Module_itemContext itemCon, Netlist netlist) throws Exception {
 
 		List<Net_assignmentContext> assignList = itemCon.module_or_generate_item().continuous_assign()
 				.list_of_net_assignments().net_assignment();
@@ -457,7 +457,7 @@ public class VerilogParser {
 
 							String msg2 = String.format(msg1_a, netName, 0);
 
-							fail(msg2, itemCon);
+							fail(filename, msg2, itemCon);
 						}
 
 					}
@@ -477,8 +477,8 @@ public class VerilogParser {
 				ParserRuleContext zpL = conAssign.net_lvalue();
 				ParserRuleContext zpR = conAssign.expression();
 
-				processModulePinConnection(m, zpL, "OUT", lval, itemCon, PinDirection.OUT, netlist);
-				processModulePinConnection(m, zpR, "IN", rval, itemCon, PinDirection.IN, netlist);
+				processModulePinConnection(filename, m, zpL, "OUT", lval, itemCon, PinDirection.OUT, netlist);
+				processModulePinConnection(filename, m, zpR, "IN", rval, itemCon, PinDirection.IN, netlist);
 
 			}
 
@@ -486,7 +486,7 @@ public class VerilogParser {
 
 	}
 
-	private static void parseModuleInstantiation(Module_itemContext itemCon, Netlist netlist) throws Exception {
+	private static void parseModuleInstantiation(String filename, Module_itemContext itemCon, Netlist netlist) throws Exception {
 
 		Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
 
@@ -512,7 +512,7 @@ public class VerilogParser {
 
 				String msg2 = String.format(ERR_MSG_16, id);
 
-				fail(msg2, itemCon);
+				fail(filename, msg2, itemCon);
 
 			}
 
@@ -536,7 +536,7 @@ public class VerilogParser {
 
 				if (termList.size() != 1) {
 
-					fail(ERR_MSG_4, itemCon);
+					fail(filename, ERR_MSG_4, itemCon);
 				}
 
 				TermContext z = termList.get(0);
@@ -562,7 +562,7 @@ public class VerilogParser {
 
 				PinDirection dir = library1.getPort(id, port_id).direction;
 
-				processModulePinConnection(m, zp, port_id, port_con, itemCon, dir, netlist);
+				processModulePinConnection(filename, m, zp, port_id, port_con, itemCon, dir, netlist);
 
 			}
 
@@ -570,7 +570,7 @@ public class VerilogParser {
 
 				String msg = String.format(ERR_MSG_15, m.id);
 
-				fail(msg, itemCon);
+				fail(filename, msg, itemCon);
 			}
 
 			netlist.modules.put(m.id, m);
@@ -579,7 +579,7 @@ public class VerilogParser {
 
 	}
 
-	private static void parseNetDeclaration(Module_itemContext itemCon, Netlist netlist)
+	private static void parseNetDeclaration(String filename, Module_itemContext itemCon, Netlist netlist)
 			throws UnsupportedGrammerException {
 
 		Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
@@ -606,7 +606,7 @@ public class VerilogParser {
 
 			} catch (Exception e) {
 
-				fail(ERR_MSG_7, itemCon);
+				fail(filename, ERR_MSG_7, itemCon);
 
 			}
 
@@ -620,7 +620,7 @@ public class VerilogParser {
 
 			if (netlist.nets.get(netName) != null) {
 
-				fail(ERR_MSG_8, itemCon);
+				fail(filename, ERR_MSG_8, itemCon);
 
 			} else {
 
@@ -638,7 +638,7 @@ public class VerilogParser {
 
 	}
 
-	private static void parsePortDeclaration(Module_itemContext itemCon, Netlist netlist)
+	private static void parsePortDeclaration(String filename, Module_itemContext itemCon, Netlist netlist)
 			throws UnsupportedGrammerException {
 
 		Port_declarationContext portDec = itemCon.port_declaration();
@@ -699,7 +699,7 @@ public class VerilogParser {
 
 				String str = String.format(ERR_MSG_1, portName);
 
-				fail(str, itemCon);
+				fail(filename, str, itemCon);
 
 			}
 
@@ -719,7 +719,7 @@ public class VerilogParser {
 
 				} catch (Exception e) {
 
-					fail(ERR_MSG_7, itemCon);
+					fail(filename, ERR_MSG_7, itemCon);
 
 				}
 
@@ -728,7 +728,7 @@ public class VerilogParser {
 		}
 	}
 
-	private static void processModulePinConnection(Module m, ParserRuleContext zp, String port_id, String port_con,
+	private static void processModulePinConnection(String filename, Module m, ParserRuleContext zp, String port_id, String port_con,
 			Module_itemContext itemCon, PinDirection dir, Netlist netlist) throws UnsupportedGrammerException {
 
 		// this function processes a single port connection of a given module
@@ -773,7 +773,7 @@ public class VerilogParser {
 
 					String msg2 = String.format(msg1_a, port_con, 0);
 
-					fail(msg2, itemCon);
+					fail(filename, msg2, itemCon);
 				}
 
 			}
@@ -802,7 +802,7 @@ public class VerilogParser {
 
 					String msg2 = String.format(ERR_MSG_17, port_con);
 
-					fail(msg2, itemCon);
+					fail(filename, msg2, itemCon);
 				}
 
 				// check if bit is in net range
@@ -813,13 +813,13 @@ public class VerilogParser {
 
 					String msg2 = String.format(msg1_a, port_con, pin);
 
-					fail(msg2, itemCon);
+					fail(filename, msg2, itemCon);
 				}
 			}
 
 		} else {
 
-			fail(ERR_MSG_13, itemCon);
+			fail(filename, ERR_MSG_13, itemCon);
 		}
 	}
 
