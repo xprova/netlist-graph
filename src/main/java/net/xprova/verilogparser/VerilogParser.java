@@ -81,7 +81,8 @@ public class VerilogParser {
 
 	// exception generation and handling
 
-	private static void fail(String filename, String errMsg, Module_itemContext itemCon) throws UnsupportedGrammerException {
+	private static void fail(String filename, String errMsg, Module_itemContext itemCon)
+			throws UnsupportedGrammerException {
 
 		Interval int1 = itemCon.getSourceInterval(); // get token interval
 
@@ -155,7 +156,8 @@ public class VerilogParser {
 
 	}
 
-	private static ArrayList<Netlist> parse(String filename, ANTLRInputStream antlr, GateLibrary library1) throws Exception {
+	private static ArrayList<Netlist> parse(String filename, ANTLRInputStream antlr, GateLibrary library1)
+			throws Exception {
 
 		// ANTLR parsing
 
@@ -297,7 +299,7 @@ public class VerilogParser {
 							String lval = conAssign.net_lvalue().getText();
 							String rval = conAssign.expression().getText();
 
-//							boolean isEscapedL = lval.startsWith("\\");
+							// boolean isEscapedL = lval.startsWith("\\");
 							boolean isEscapedR = rval.startsWith("\\");
 
 							boolean looksArrL = lval.contains(":");
@@ -402,7 +404,8 @@ public class VerilogParser {
 
 	}
 
-	private static void parseAssignStatement(String filename, Module_itemContext itemCon, Netlist netlist) throws Exception {
+	private static void parseAssignStatement(String filename, Module_itemContext itemCon, Netlist netlist)
+			throws Exception {
 
 		List<Net_assignmentContext> assignList = itemCon.module_or_generate_item().continuous_assign()
 				.list_of_net_assignments().net_assignment();
@@ -486,7 +489,8 @@ public class VerilogParser {
 
 	}
 
-	private static void parseModuleInstantiation(String filename, Module_itemContext itemCon, Netlist netlist) throws Exception {
+	private static void parseModuleInstantiation(String filename, Module_itemContext itemCon, Netlist netlist)
+			throws Exception {
 
 		Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
 
@@ -525,6 +529,16 @@ public class VerilogParser {
 			boolean ordered = orderedCons.size() > 0;
 
 			int conCount = ordered ? orderedCons.size() : namedCons.size();
+
+			if (conCount > modulePorts.size()) {
+
+				String strE = String.format(
+						"module instantiation contains %d ports while only %d are defined in library", conCount,
+						modulePorts.size());
+
+				fail(filename, strE, itemCon);
+
+			}
 
 			for (int k = 0; k < conCount; k++) {
 
@@ -728,8 +742,9 @@ public class VerilogParser {
 		}
 	}
 
-	private static void processModulePinConnection(String filename, Module m, ParserRuleContext zp, String port_id, String port_con,
-			Module_itemContext itemCon, PinDirection dir, Netlist netlist) throws UnsupportedGrammerException {
+	private static void processModulePinConnection(String filename, Module m, ParserRuleContext zp, String port_id,
+			String port_con, Module_itemContext itemCon, PinDirection dir, Netlist netlist)
+			throws UnsupportedGrammerException {
 
 		// this function processes a single port connection of a given module
 		// instantiation
