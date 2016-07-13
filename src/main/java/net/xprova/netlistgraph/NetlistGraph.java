@@ -734,65 +734,107 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		}
 
+		// include subgraph
+
 		HashMap<Vertex, Vertex> corr = include(subGraph);
 
-		// making input connections
+		// merge subgraph input and output nets with their correspondents
 
-		for (Vertex mi : modInputs) {
+		for (Vertex i : subGraph.inputs) {
 
-			String pin = getPinName(mi, module);
+			Vertex n1 = getNet(module, i.name);
 
-			Vertex si = corr.get(subInputs.get(pin));
+			Vertex n2 = corr.get(i);
 
-			// connect mi to all the destinations of si
-
-			for (Vertex d : getDestinations(si)) {
-
-				String innerPin = getPinName(si, d);
-
-				removeConnection(si, d);
-
-				addConnection(mi, d, innerPin);
-
-			 }
-
-			// remove subgraph input vertex
-
-			removeVertex(si);
-
-			// remove module input connections
-
-			removeConnection(mi, module);
-
+			joinNets(n1, n2, n1);
 
 		}
 
-		// making output connections
+		for (Vertex o : subGraph.outputs) {
 
-		for (Vertex mo : modOutputs) {
+			Vertex n1 = corr.get(o);
+			Vertex n2 = getNet(module, o.name);
 
-			String pin = getPinName(module, mo);
+			System.out.println("merging " + n1 + " into " + n2);
 
-			Vertex so = corr.get(subOutputs.get(pin));
-
-			// connect source of mo to so
-
-			Vertex soDriver  = getSourceModule(so);
-
-			String innerPin = getPinName(soDriver, so);
-
-			removeConnection(module, mo);
-
-			removeConnection(soDriver, so);
-
-			addConnection(soDriver, mo, innerPin);
-
-			removeVertex(so);
-
+			joinNets(n1, n2, n2);
 
 		}
+
+		// finally, remove module (this automatically removes all of its
+		// connections)
 
 		removeVertex(module);
+
+	}
+
+	private void joinNets(Vertex n1, Vertex n2, Vertex preserve) throws Exception {
+
+		//@formatter:off
+		//
+		// joinNets() is an algorithm used during expand().
+		//
+		// It combines two nets n1 and n2 into one by:
+		// - joining their outgoing gate connections
+		// - keeping the source connection of n1
+		// - keeping whichever of n1/n2 equals `preserve` and removing the other
+		//
+		// For example, assume we have a graph where a net A is driven by gate x
+		// and is an input for two gates y and z:
+		//
+		// x --> A --> y
+		//       |---> z
+		//
+		// and (in the same graph) another net B is driven by gate k and is an
+		// input for a gate w:
+		//
+		// k --> B --> w
+		//
+		// Now after executing joinNets(A, B, A), the graph will become:
+		//
+		// x --> A --> y
+		//       | --> z
+		//       | --> w
+		//
+		//@formatter:on
+
+		if (preserve == n1) {
+
+			// copy n2's connections to n1 and remove n2
+
+			for (Vertex d : getDestinations(n2)) {
+
+				String pin = getPinName(n2, d);
+
+				addConnection(n1, d, pin);
+
+			}
+
+			removeVertex(n2);
+
+		} else if (preserve == n2) {
+
+			// copy n1's connections to n2
+
+			for (Vertex d : getDestinations(n1)) {
+
+				String pin = getPinName(n1, d);
+
+				addConnection(n2, d, pin);
+
+			}
+
+			// make n2 driven by n1's driver
+
+			Vertex n1Driver = getSourceModule(n1);
+
+			addConnection(n1Driver, n2);
+
+			// remove n1
+
+			removeVertex(n1);
+
+		}
 
 	}
 
