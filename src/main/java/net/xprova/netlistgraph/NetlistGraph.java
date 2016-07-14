@@ -738,6 +738,14 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		HashMap<Vertex, Vertex> corr = include(subGraph);
 
+		// remove subGraph io nets from this graph's io sets
+
+		for (Vertex i : subGraph.inputs)
+			inputs.remove(corr.get(i));
+
+		for (Vertex o : subGraph.inputs)
+			outputs.remove(corr.get(o));
+
 		// merge subgraph input and output nets with their correspondents
 
 		for (Vertex i : subGraph.inputs) {
@@ -843,6 +851,9 @@ public class NetlistGraph extends Graph<Vertex> {
 
 			}
 
+			if (inputs.contains(n2))
+				inputs.add(n1);
+
 			removeVertex(n2);
 
 		} else if (preserve == n2) {
@@ -868,6 +879,7 @@ public class NetlistGraph extends Graph<Vertex> {
 			addConnection(n1Driver, n2, port);
 
 			// remove n1
+
 
 			removeVertex(n1);
 
@@ -955,6 +967,18 @@ public class NetlistGraph extends Graph<Vertex> {
 		}
 
 		return corr;
+
+	}
+
+	public void addInput(Vertex v) {
+
+		inputs.add(v);
+
+	}
+
+	public void addOutput(Vertex v) {
+
+		outputs.add(v);
 
 	}
 
