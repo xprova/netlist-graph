@@ -861,7 +861,11 @@ public class NetlistGraph extends Graph<Vertex> {
 
 			Vertex n1Driver = getSourceModule(n1);
 
-			addConnection(n1Driver, n2);
+			String port = getPinName(n1Driver, n1);
+
+			removeConnection(getSourceModule(n2), n2);
+
+			addConnection(n1Driver, n2, port);
 
 			// remove n1
 
