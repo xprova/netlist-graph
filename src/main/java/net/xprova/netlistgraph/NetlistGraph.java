@@ -17,6 +17,8 @@ import net.xprova.netlist.Port;
 
 public class NetlistGraph extends Graph<Vertex> {
 
+	private final String strHier = "\\%s.%s";
+
 	private String name;
 
 	private HashSet<Vertex> modules, nets, inputs, outputs;
@@ -791,14 +793,15 @@ public class NetlistGraph extends Graph<Vertex> {
 
 			Vertex n = corr.get(ns);
 
-			n.name = module.name + "_" + n.name;
+			n.name = String.format(strHier, module.name, n.name);
+
 		}
 
 		for (Vertex ms : subGraph.modules) {
 
 			Vertex n = corr.get(ms);
 
-			n.name = module.name + "_" + n.name;
+			n.name = String.format(strHier, module.name, n.name);
 
 		}
 
@@ -879,7 +882,6 @@ public class NetlistGraph extends Graph<Vertex> {
 			addConnection(n1Driver, n2, port);
 
 			// remove n1
-
 
 			removeVertex(n1);
 
