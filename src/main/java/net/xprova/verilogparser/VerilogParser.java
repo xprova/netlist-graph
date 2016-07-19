@@ -315,7 +315,7 @@ public class VerilogParser {
 
 							// check rval
 
-							if (isEscapedR || looksArrR || nestedConcatR)
+							if ((looksArrR || nestedConcatR) && !isEscapedR)
 								fail(filename, ERR_MSG_4, itemCon);
 
 							// item can be parsed:
@@ -766,6 +766,8 @@ public class VerilogParser {
 
 		if (tokens == 1) {
 
+			// non-array identifier, e.g. x
+
 			PinConnection pcon = new PinConnection(port_con, 0, dir);
 
 			m.connections.put(port_id, pcon);
@@ -793,13 +795,17 @@ public class VerilogParser {
 
 			}
 
-		} else if (tokens == 4) {
+		} else if (tokens == 4 || tokens == 5) {
 
-			Token token2 = tokenStream.get(zp.start.getTokenIndex() + 1);
+			// array identifier, e.g. x[1]
 
-			Token token3 = tokenStream.get(zp.start.getTokenIndex() + 2);
+			int spaceBuffer = tokens == 5 ? 1 : 0;
 
-			Token token4 = tokenStream.get(zp.start.getTokenIndex() + 3);
+			Token token2 = tokenStream.get(zp.start.getTokenIndex() + 1 + spaceBuffer);
+
+			Token token3 = tokenStream.get(zp.start.getTokenIndex() + 2 + spaceBuffer);
+
+			Token token4 = tokenStream.get(zp.start.getTokenIndex() + 3 + spaceBuffer);
 
 			if (token2.getText().equals("[") && token4.getText().equals("]")) {
 
