@@ -39,8 +39,6 @@ public class Generator {
 
 		ArrayList<String> mods = new ArrayList<String>();
 
-		ArrayList<String> ports = new ArrayList<String>();
-
 		HashMap<String, Range> nets = new HashMap<String, Range>();
 
 		for (Vertex v : graph.getNets()) {
@@ -71,11 +69,6 @@ public class Generator {
 			} else {
 
 				nets.put(name, new Range(name, v.subtype, bit));
-
-				if ("input".equals(v.subtype) || "output".equals(v.subtype)) {
-
-					ports.add(getEscaped(name));
-				}
 
 			}
 

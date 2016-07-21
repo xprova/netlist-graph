@@ -29,7 +29,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	private MultiMap<Vertex, String, Vertex> modConnections;
 
-	private ArrayList<String> orderedPorts; // as in header
+	private ArrayList<Vertex> orderedPorts; // as in header
 
 	public NetlistGraph() {
 
@@ -60,8 +60,6 @@ public class NetlistGraph extends Graph<Vertex> {
 		// netMap: used to access Net vertices by their String name
 
 		HashMap<String, Vertex> netMap = new HashMap<String, Vertex>();
-
-		orderedPorts = new ArrayList<String>(netlist.orderedPorts);
 
 		// first, add nets
 
@@ -176,6 +174,13 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		checkDrivers();
 
+		// finally port list
+
+		orderedPorts = new ArrayList<Vertex>();
+
+		for (String s : netlist.orderedPorts)
+			orderedPorts.add(getVertex(s));
+
 	}
 
 	public NetlistGraph(NetlistGraph other) {
@@ -285,10 +290,10 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		// clone orderedPorts
 
-		orderedPorts = new ArrayList<String>();
+		orderedPorts = new ArrayList<Vertex>();
 
-		for (String s : other.orderedPorts)
-			orderedPorts.add(s);
+		for (Vertex s : other.orderedPorts)
+			orderedPorts.add(corr.get(s));
 
 	}
 
@@ -533,7 +538,13 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	public String getPortList() {
 
-		return join(orderedPorts, ", ");
+		String result = "";
+
+		for (Vertex port : orderedPorts)
+			result += result.isEmpty() ? port.name : ", " + port.name;
+
+		return result;
+
 	}
 
 	public Graph<Vertex> getModuleGraph() {
@@ -607,39 +618,9 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
-	private static String join(ArrayList<String> list, String delim) {
-
-		if (list.isEmpty()) {
-
-			return "";
-
-		} else if (list.size() == 1) {
-
-			return list.get(0);
-
-		} else {
-
-			StringBuilder sb = new StringBuilder(1024);
-
-			sb.append(list.get(0));
-
-			for (int i = 1; i < list.size(); i++) {
-
-				sb.append(delim);
-
-				sb.append(list.get(i));
-
-			}
-
-			return sb.toString();
-
-		}
-
-	}
-
 	public void addPort(String portName) {
 
-		orderedPorts.add(portName);
+		orderedPorts.add(getVertex(portName));
 
 	}
 
