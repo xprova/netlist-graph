@@ -1,6 +1,7 @@
 package net.xprova.verilogparser;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -912,6 +913,61 @@ public class VerilogParser {
 		Interval int1 = context.getSourceInterval(); // get token interval
 
 		System.out.println(tokenStream.getText(int1));
+	}
+
+	// extract module dependencies
+
+	public static void getDependencies(String verilogFile) throws IOException {
+
+		// HashMap<String, HashSet<String>> result = new HashMap<String,
+		// HashSet<String>>();
+
+		FileInputStream stream1 = new FileInputStream(verilogFile);
+
+		ANTLRInputStream antlr = new ANTLRInputStream(stream1);
+
+		// ANTLR parsing
+
+		Verilog2001Lexer lexer1 = new Verilog2001Lexer(antlr);
+
+		CommonTokenStream tokenStream = new CommonTokenStream(lexer1);
+
+		Verilog2001Parser parser1 = new Verilog2001Parser(tokenStream);
+
+		Source_textContext source = parser1.source_text();
+
+		List<DescriptionContext> modules = source.description();
+
+		int nModules = modules.size();
+
+		for (int j = 0; j < nModules; j++) {
+
+			Module_declarationContext module = modules.get(j).module_declaration();
+
+			String design = module.module_identifier().getText();
+
+			for (Module_itemContext itemCon : module.module_item()) {
+
+				Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
+
+				if (modItem != null) {
+
+					Module_instantiationContext mi = modItem.module_instantiation();
+
+					if (mi != null) {
+
+						String id = mi.module_identifier().getText();
+
+						System.out.printf("Found instance <%s> in <%s>\n", id, design);
+
+					}
+
+				}
+
+			}
+
+		}
+
 	}
 
 }
