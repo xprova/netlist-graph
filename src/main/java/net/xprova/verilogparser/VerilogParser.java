@@ -751,9 +751,6 @@ public class VerilogParser {
 	private static void processModulePinConnection(String filename, Module m, ParserRuleContext zp, String port_con,
 			Module_itemContext itemCon, Port port, Netlist netlist) throws UnsupportedGrammerException {
 
-		// this function processes a single port connection of a given module
-		// instantiation
-
 		// this function does the following:
 		// - adds a PinConnection to the `connections` set of Module `m`
 		// - create any single-bit nets that the port connection references, and
@@ -778,8 +775,23 @@ public class VerilogParser {
 
 			Net net = netlist.nets.get(port_con);
 
-			if (net == null)
-				fail(filename, ERR_MSG_10, itemCon);
+			if (net == null) {
+
+				// implicit net declaration
+
+				if (port.getCount() > 1) {
+
+					// implicit net declaration with array ports is not
+					// supported atm
+
+					fail(filename, ERR_MSG_10, itemCon);
+
+				} else {
+
+					netlist.nets.put(port_con, new Net(port_con));
+
+				}
+			}
 
 			for (int bit : port.getBits()) {
 
