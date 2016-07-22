@@ -1,9 +1,16 @@
 package net.xprova.netlist;
 
-
 public class Port extends Net {
 
 	public PinDirection direction = PinDirection.UNKONWN;
+
+	public Port(Port other) {
+
+		super(other);
+
+		this.direction = other.direction;
+
+	}
 
 	public Port(String id, PinDirection direction) {
 
@@ -15,8 +22,9 @@ public class Port extends Net {
 	@Override
 	public String toString() {
 
-		int bits = Math.abs(end - start) + 1;
+		int c = this.getCount();
 
-		return id + ", \t" + bits + " bit(s), \t" + direction;
+		return String.format("%s (%d %s - %s)", id, c, c == 1 ? "bit" : "bits", direction);
 	}
+
 }

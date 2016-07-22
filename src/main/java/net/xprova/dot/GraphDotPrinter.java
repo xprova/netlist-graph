@@ -86,7 +86,7 @@ public class GraphDotPrinter {
 
 						} else if (!formatter.getIgnoredEdge(edge)) {
 
-							out.printf("\t %s \t -> \t %s [label=%s, fontName=Arial]\n", vid, did, edge);
+							out.printf("\t %s \t -> \t %s [label=\"%s\", fontname=Arial]\n", vid, did, edge);
 
 						}
 

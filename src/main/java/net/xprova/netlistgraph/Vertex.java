@@ -1,10 +1,16 @@
 package net.xprova.netlistgraph;
 
-public class Vertex implements Comparable<Vertex>{
+public class Vertex implements Comparable<Vertex> {
 
 	public String name, subtype;
 
 	public VertexType type;
+
+	public String arrayName = ""; // if vertex belongs to array
+
+	public int arrayIndex = 0; // if vertex belongs to array
+
+	public int arraySize = 0; // if vertex belongs to array
 
 	public Vertex(String name, VertexType type, String subtype) {
 
@@ -16,23 +22,29 @@ public class Vertex implements Comparable<Vertex>{
 
 	}
 
-	public Vertex(Vertex v) {
+	public Vertex(Vertex other) {
 
-		this.name = v.name;
+		this.name = other.name;
 
-		this.type = v.type;
+		this.type = other.type;
 
-		this.subtype = v.subtype;
+		this.subtype = other.subtype;
+
+		this.arrayName = other.arrayName;
+
+		this.arrayIndex = other.arrayIndex;
+
+		this.arraySize = other.arraySize;
 
 	}
 
 	public Vertex() {
 
-		this.name  = "n/a";
+		this.name = "n/a";
 
-		this.type  = VertexType.NET;
+		this.type = VertexType.NET;
 
-		this.subtype  = "n/a";
+		this.subtype = "n/a";
 
 	}
 
@@ -47,7 +59,6 @@ public class Vertex implements Comparable<Vertex>{
 	public int compareTo(Vertex other) {
 
 		return name.compareTo(other.name);
-
 
 	}
 

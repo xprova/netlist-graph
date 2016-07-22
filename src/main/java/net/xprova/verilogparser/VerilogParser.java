@@ -72,6 +72,7 @@ public class VerilogParser {
 	private final static String ERR_MSG_8 = "net redefinition";
 	private final static String ERR_MSG_9 = "declaration mismatch between port <%s> [%d:%d] and wire <%s> [%d:%d]";
 
+	private final static String ERR_MSG_10 = "implicit declaratin of array net";
 	private final static String ERR_MSG_12 = "gate instantiation is not supported";
 	private final static String ERR_MSG_13 = "unsupported module connection";
 
@@ -480,8 +481,11 @@ public class VerilogParser {
 				ParserRuleContext zpL = conAssign.net_lvalue();
 				ParserRuleContext zpR = conAssign.expression();
 
-				processModulePinConnection(filename, m, zpL, "OUT", lval, itemCon, PinDirection.OUT, netlist);
-				processModulePinConnection(filename, m, zpR, "IN", rval, itemCon, PinDirection.IN, netlist);
+				Port pIn = new Port("IN", PinDirection.IN);
+				Port pOut = new Port("OUT", PinDirection.OUT);
+
+				processModulePinConnection(filename, m, zpL, lval, itemCon, pOut, netlist);
+				processModulePinConnection(filename, m, zpR, rval, itemCon, pIn, netlist);
 
 			}
 
@@ -574,9 +578,11 @@ public class VerilogParser {
 
 				String port_id = ordered ? modulePorts.get(k).id : namedCons.get(k).port_identifier().getText();
 
-				PinDirection dir = library1.getPort(id, port_id).direction;
+				// PinDirection dir = library1.getPort(id, port_id).direction;
 
-				processModulePinConnection(filename, m, zp, port_id, port_con, itemCon, dir, netlist);
+				Port port = library1.getPort(id, port_id);
+
+				processModulePinConnection(filename, m, zp, port_con, itemCon, port, netlist);
 
 			}
 
@@ -742,62 +748,52 @@ public class VerilogParser {
 		}
 	}
 
-	private static void processModulePinConnection(String filename, Module m, ParserRuleContext zp, String port_id,
-			String port_con, Module_itemContext itemCon, PinDirection dir, Netlist netlist)
-			throws UnsupportedGrammerException {
+	private static void processModulePinConnection(String filename, Module m, ParserRuleContext zp, String port_con,
+			Module_itemContext itemCon, Port port, Netlist netlist) throws UnsupportedGrammerException {
 
 		// this function processes a single port connection of a given module
 		// instantiation
 
+		// this function does the following:
+		// - adds a PinConnection to the `connections` set of Module `m`
+		// - create any single-bit nets that the port connection references, and
+		// adds them to netlist.nets
+
 		// inputs:
 
+		// filename : quoted when throwing parsing exceptions
 		// m : Module object
 		// zp : holds the tokens for the net to which the port is connected
-
 		// port_id : id of module port to be connected
 		// port_con : net to be connected to module
-
 		// itemCon : context of module instantiation (needed when throwing
 		// Exceptions)
-
 		// dir : direction of pin
 
 		int tokens = zp.stop.getTokenIndex() - zp.start.getTokenIndex() + 1;
 
 		if (tokens == 1) {
 
-			// non-array identifier, e.g. x
-
-			PinConnection pcon = new PinConnection(port_con, 0, dir);
-
-			m.connections.put(port_id, pcon);
+			// identifier, e.g. x
 
 			Net net = netlist.nets.get(port_con);
 
-			if (net == null) {
+			if (net == null)
+				fail(filename, ERR_MSG_10, itemCon);
 
-				// implicit net declaration
+			for (int bit : port.getBits()) {
 
-				netlist.nets.put(port_con, new Net(port_con));
+				PinConnection pcon = new PinConnection(port_con, bit, port.direction);
 
-			} else {
+				String pID = port.getCount() > 1 ? (port.id + "[" + bit + "]") : port.id;
 
-				// check if bit 0 is in net range
-
-				if (!netlist.nets.get(port_con).inRange(0)) {
-
-					String msg1_a = "net <%s> does not have bit <%d>";
-
-					String msg2 = String.format(msg1_a, port_con, 0);
-
-					fail(filename, msg2, itemCon);
-				}
+				m.connections.put(pID, pcon);
 
 			}
 
 		} else if (tokens == 4 || tokens == 5) {
 
-			// array identifier, e.g. x[1]
+			// indexed identifier, e.g. x[1]
 
 			int spaceBuffer = tokens == 5 ? 1 : 0;
 
@@ -813,9 +809,9 @@ public class VerilogParser {
 
 				int pin = Integer.parseInt(token3.getText());
 
-				PinConnection pcon = new PinConnection(port_con, pin, dir);
+				PinConnection pcon = new PinConnection(port_con, pin, port.direction);
 
-				m.connections.put(port_id, pcon);
+				m.connections.put(port.id, pcon);
 
 				// check if net port_con is explicitly declared
 

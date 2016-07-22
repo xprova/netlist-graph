@@ -94,6 +94,12 @@ public class NetlistGraph extends Graph<Vertex> {
 
 				Vertex v = new Vertex(vName, VertexType.NET, type);
 
+				v.arrayIndex = i;
+
+				v.arrayName = net.id;
+
+				v.arraySize = net.getCount();
+
 				addVertex(v);
 
 				netMap.put(vName, v);

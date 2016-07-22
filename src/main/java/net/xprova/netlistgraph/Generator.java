@@ -4,6 +4,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Generator {
 
@@ -95,14 +100,81 @@ public class Generator {
 
 				String form = ".%s(%s)";
 
+				// Generating port connections is nearly straightforward.
+				// The only thing to pay a bit of attention to is the generation
+				// of array connections, for example:
+				//
+				// mod1 u1 (.a(x), .b(y)
+				// where x and y are say 2-bit arrays
+				//
+				// in this case this u1 has four connections:
+				// - input from x[0] through pin a[0]
+				// - input from x[1] through pin a[1]
+				// - output to y[0] through pin b[0]
+				// - output to y[1] through pin b[1]
+
+				// as a first step, we build a TreeMap of <pinName, Vertex>
+				// containing individual array pins (e.g. x[0] and a[0])
+
+				TreeMap<String, Vertex> portMap = new TreeMap<String, Vertex>();
+
 				for (Vertex s : graph.getSources(v)) {
 
-					portList.add(String.format(form, getEscaped(graph.getPinName(s, v)), getEscaped(s.name)));
+					portMap.put(graph.getPinName(s, v), s);
+
 				}
 
 				for (Vertex d : graph.getDestinations(v)) {
 
-					portList.add(String.format(form, getEscaped(graph.getPinName(v, d)), getEscaped(d.name)));
+					portMap.put(graph.getPinName(v, d), d);
+
+				}
+
+				// next we "group" array bits by building another TreeMap
+				// similar to portMap but where each entry is <pinName,
+				// VertexName> and pinName/VertexName are NOT indexed, for
+				// example: <x, a>
+
+				TreeMap<String, String> groupPortMap = new TreeMap<String, String>();
+
+				HashSet<String> groupedPorts = new HashSet<String>();
+
+				for (Entry<String, Vertex> entry : portMap.entrySet()) {
+
+					String portName = entry.getKey();
+
+					Vertex net = entry.getValue();
+
+					if (!groupedPorts.contains(net.arrayName)) {
+
+						groupPortMap.put(getStripped(portName), net.arrayName);
+
+						groupedPorts.add(net.arrayName);
+
+					}
+
+					// as an additional check, verify that net and port
+					// index are the same, i.e. x[n] connected through a[n]
+
+					if (net.arraySize > 1) {
+
+						String strIndex = "[" + net.arrayIndex + "]";
+
+						if (!portName.contains(strIndex))
+							throw new Exception("net and pin indices are not equal");
+
+					}
+
+				}
+
+				for (Entry<String, String> entry : groupPortMap.entrySet()) {
+
+					String portName = getEscaped(entry.getKey());
+
+					String netName = getEscaped(entry.getValue());
+
+					portList.add(String.format(form, portName, netName));
+
 				}
 
 				String str = String.format("%s %s (%s);", v.subtype, getEscaped(v.name), sortjoin(portList, ", "));
@@ -186,6 +258,22 @@ public class Generator {
 	private static String getEscaped(String id) {
 
 		return id.startsWith("\\") ? id + " " : id;
+
+	}
+
+	private static String getStripped(String id) {
+
+		// returns identifier given an indexed identifier
+		// e.g. when passed `x[1]` returns `x`
+
+		// also handles the special case of escaped identifiers
+		// e.g. `\x [1]` -> `\x`
+
+		String regex = "(\\S+)\\s*\\[\\d+\\]";
+
+		Matcher m1 = Pattern.compile(regex).matcher(id);
+
+		return m1.find() ? m1.group(1) : id;
 
 	}
 
