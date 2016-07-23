@@ -61,6 +61,8 @@ public class VerilogParser {
 
 	private static GateLibrary library1;
 
+	private static Verilog2001Parser parser1;
+
 	// error messages
 
 	private final static String ERR_MSG_1 = "port <%s> not declared in module header";
@@ -120,46 +122,29 @@ public class VerilogParser {
 
 	}
 
-	// parsing
-
-	public static ArrayList<Netlist> parseFile(String verilogFile) throws Exception {
-
-		// This form of the method is used for parsing library files.
-		// Modules in library files may not instantiate any modules within them;
-		// then can only contain port declarations, for example:
-		// module NOT (y, a); input a; output y; endmodule
-
-		return parseFile(verilogFile, new GateLibrary());
-
-	}
+	// parsing API
 
 	public static ArrayList<Netlist> parseFile(String verilogFile, GateLibrary library) throws Exception {
 
+		// pass null as `library` to parse without library
+
 		FileInputStream stream1 = new FileInputStream(verilogFile);
 
-		return parse(verilogFile, new ANTLRInputStream(stream1), library);
-
-	}
-
-	public static ArrayList<Netlist> parseString(String str) throws Exception {
-
-		// This form of the method is used for parsing library files.
-		// Modules in library files may not instantiate any modules within them;
-		// then can only contain port declarations, for example:
-		// module NOT (y, a); input a; output y; endmodule
-
-		return parseString(str, new GateLibrary());
+		return getNetlists(verilogFile, new ANTLRInputStream(stream1), library == null ? new GateLibrary() : library);
 
 	}
 
 	public static ArrayList<Netlist> parseString(String str, GateLibrary library) throws Exception {
 
-		return parse("STRING", new ANTLRInputStream(str), library);
+		// pass null as `library` to parse without library
+
+		return getNetlists("STRING", new ANTLRInputStream(str), library == null ? new GateLibrary() : library);
 
 	}
 
-	private static ArrayList<Netlist> parse(String filename, ANTLRInputStream antlr, GateLibrary library1)
-			throws Exception {
+	// parsing methods
+
+	private static void createParser(String filename, ANTLRInputStream antlr, GateLibrary library1) {
 
 		// ANTLR parsing
 
@@ -167,7 +152,20 @@ public class VerilogParser {
 
 		CommonTokenStream tokenStream = new CommonTokenStream(lexer1);
 
-		Verilog2001Parser parser1 = new Verilog2001Parser(tokenStream);
+		parser1 = new Verilog2001Parser(tokenStream);
+
+		VerilogParser.tokenStream = tokenStream;
+
+		VerilogParser.library1 = library1;
+
+	}
+
+	private static ArrayList<Netlist> getNetlists(String filename, ANTLRInputStream antlr, GateLibrary library1)
+			throws Exception {
+
+		// ANTLR parsing
+
+		createParser(filename, antlr, library1);
 
 		Source_textContext source = parser1.source_text();
 
@@ -180,10 +178,6 @@ public class VerilogParser {
 		for (int j = 0; j < nModules; j++) {
 
 			Module_declarationContext module = modules.get(j).module_declaration();
-
-			VerilogParser.tokenStream = tokenStream;
-
-			VerilogParser.library1 = library1;
 
 			Netlist netlist = new Netlist();
 
@@ -903,16 +897,6 @@ public class VerilogParser {
 
 		}
 
-	}
-
-	// print
-
-	@SuppressWarnings("unused")
-	private void print(ParserRuleContext context, CommonTokenStream tokenStream) {
-
-		Interval int1 = context.getSourceInterval(); // get token interval
-
-		System.out.println(tokenStream.getText(int1));
 	}
 
 	// extract module dependencies
