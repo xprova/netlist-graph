@@ -400,4 +400,10 @@ public class Graph<V> {
 
 	}
 
+	public int getVertexCount() {
+
+		return vertices.size();
+
+	}
+
 }
