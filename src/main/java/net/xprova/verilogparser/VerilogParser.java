@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -901,10 +902,9 @@ public class VerilogParser {
 
 	// extract module dependencies
 
-	public static void getDependencies(String verilogFile) throws IOException {
+	public static HashMap<String, HashSet<String>> getDependencies(String verilogFile) throws IOException {
 
-		// HashMap<String, HashSet<String>> result = new HashMap<String,
-		// HashSet<String>>();
+		HashMap<String, HashSet<String>> dependencies = new HashMap<String, HashSet<String>>();
 
 		FileInputStream stream1 = new FileInputStream(verilogFile);
 
@@ -922,15 +922,15 @@ public class VerilogParser {
 
 		List<DescriptionContext> modules = source.description();
 
-		int nModules = modules.size();
+		for (DescriptionContext module : modules) {
 
-		for (int j = 0; j < nModules; j++) {
+			String design = module.module_declaration().module_identifier().getText();
 
-			Module_declarationContext module = modules.get(j).module_declaration();
+			HashSet<String> designDepends = new HashSet<String>();
 
-			String design = module.module_identifier().getText();
+			List<Module_itemContext> modItems = module.module_declaration().module_item();
 
-			for (Module_itemContext itemCon : module.module_item()) {
+			for (Module_itemContext itemCon : modItems) {
 
 				Module_or_generate_itemContext modItem = itemCon.module_or_generate_item();
 
@@ -942,7 +942,7 @@ public class VerilogParser {
 
 						String id = mi.module_identifier().getText();
 
-						System.out.printf("Found instance <%s> in <%s>\n", id, design);
+						designDepends.add(id);
 
 					}
 
@@ -950,7 +950,11 @@ public class VerilogParser {
 
 			}
 
+			dependencies.put(design, designDepends);
+
 		}
+
+		return dependencies;
 
 	}
 
