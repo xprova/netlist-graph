@@ -50,7 +50,7 @@ public class GraphDotPrinter {
 				if (label.length() > maxLabelLength)
 					label = label.substring(0, maxLabelLength - 1);
 
-				out.printf("\t %s \t [label=\"%s\"] [%s];\n", vid, label, formatter.getShape(v));
+				out.printf("\t %s \t [label=\"%s\"] [%s];\n", vid, getEscaped(label), formatter.getShape(v));
 
 				uniqueIDs.put(v, idCounter);
 
@@ -102,6 +102,12 @@ public class GraphDotPrinter {
 		out.println("}");
 
 		out.close();
+
+	}
+
+	private static String getEscaped(String id) {
+
+		return id.startsWith("\\") ? "\\".concat(id) : id;
 
 	}
 
