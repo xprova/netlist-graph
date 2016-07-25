@@ -468,20 +468,28 @@ public class VerilogParser {
 
 			} else {
 
-				String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
+				String netL = conAssign.net_lvalue().getText();
+				String netR = conAssign.expression().getText();
 
-				Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+				int bitsL = netlist.nets.get(netL).getCount();
+				int bitsR = netlist.nets.get(netR).getCount();
 
-				netlist.modules.put(wireModID, m);
+				if (bitsL != bitsR)
+					fail(filename, "bit number mismatch in continuous assignment statement", itemCon);
 
-				ParserRuleContext zpL = conAssign.net_lvalue();
-				ParserRuleContext zpR = conAssign.expression();
+				for (int bit= 0; bit < bitsL; bit++) {
 
-				Port pIn = new Port("IN", PinDirection.IN);
-				Port pOut = new Port("OUT", PinDirection.OUT);
+					String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
 
-				processModulePinConnection(filename, m, zpL, lval, itemCon, pOut, netlist);
-				processModulePinConnection(filename, m, zpR, rval, itemCon, pIn, netlist);
+					Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+
+					netlist.modules.put(wireModID, m);
+
+					m.connections.put("IN", new PinConnection(netR, bit, PinDirection.IN));
+
+					m.connections.put("OUT", new PinConnection(netL, bit, PinDirection.OUT));
+
+				}
 
 			}
 

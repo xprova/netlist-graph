@@ -86,9 +86,29 @@ public class Generator {
 				// virtual module created by an assignment statement
 
 				Vertex in = graph.getNet(v, "IN");
+
 				Vertex out = graph.getNet(v, "OUT");
 
-				String str = String.format("assign %s = %s;", out.name, getEscaped(in.name));
+				String iNet, oNet;
+
+				if (in == null) {
+
+					// this assign block connects multiple net pairs together (i.e.
+					// bit arrays)
+
+					iNet = graph.getNet(v, "IN[0]").arrayName;
+					oNet = graph.getNet(v, "OUT[0]").arrayName;
+
+				} else {
+
+					// assign of single-bit net to another single-bit net
+
+					iNet = in.name;
+					oNet = out.name;
+
+				}
+
+				String str = String.format("assign %s = %s;", getEscaped(oNet), getEscaped(iNet));
 
 				mods.add(str);
 
