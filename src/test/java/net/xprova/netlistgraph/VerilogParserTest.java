@@ -109,7 +109,7 @@ public class VerilogParserTest extends TestCase {
 
 		// test code
 
-		GateLibrary lib = new GateLibrary(VerilogParser.parseString(LIB_STR));
+		GateLibrary lib = new GateLibrary(VerilogParser.parseString(LIB_STR, null));
 
 		for (String str : LIB_OK) {
 
@@ -149,7 +149,7 @@ public class VerilogParserTest extends TestCase {
 
 		// test code
 
-		GateLibrary lib = new GateLibrary(VerilogParser.parseString(LIB_STR));
+		GateLibrary lib = new GateLibrary(VerilogParser.parseString(LIB_STR, null));
 
 		NetlistGraph ng = new NetlistGraph(VerilogParser.parseString(str1, lib).get(0));
 

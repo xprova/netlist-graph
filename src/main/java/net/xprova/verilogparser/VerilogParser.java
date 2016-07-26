@@ -437,6 +437,7 @@ public class VerilogParser {
 					// processModulePinConnection (tokens == 1)
 
 					m.connections.put("IN", new PinConnection(netName, 0, PinDirection.IN));
+
 					m.connections.put("OUT", new PinConnection(lval, bitIndex, PinDirection.OUT));
 
 					Net net = netlist.nets.get(netName);
@@ -466,18 +467,29 @@ public class VerilogParser {
 
 				}
 
+			} else if (rval.contains("[")) {
+
+				Net rNet = parseArrayNet(conAssign.expression());
+
+				String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
+
+				Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+
+				netlist.modules.put(wireModID, m);
+
+				m.connections.put("IN", new PinConnection(rNet.id, rNet.start, PinDirection.IN));
+
+				m.connections.put("OUT", new PinConnection(lval, rNet.start, PinDirection.OUT));
+
 			} else {
 
-				String netL = conAssign.net_lvalue().getText();
-				String netR = conAssign.expression().getText();
-
-				int bitsL = netlist.nets.get(netL).getCount();
-				int bitsR = netlist.nets.get(netR).getCount();
+				int bitsL = netlist.nets.get(lval).getCount();
+				int bitsR = netlist.nets.get(rval).getCount();
 
 				if (bitsL != bitsR)
 					fail(filename, "bit number mismatch in continuous assignment statement", itemCon);
 
-				for (int bit= 0; bit < bitsL; bit++) {
+				for (int bit = 0; bit < bitsL; bit++) {
 
 					String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
 
@@ -485,9 +497,9 @@ public class VerilogParser {
 
 					netlist.modules.put(wireModID, m);
 
-					m.connections.put("IN", new PinConnection(netR, bit, PinDirection.IN));
+					m.connections.put("IN", new PinConnection(rval, bit, PinDirection.IN));
 
-					m.connections.put("OUT", new PinConnection(netL, bit, PinDirection.OUT));
+					m.connections.put("OUT", new PinConnection(lval, bit, PinDirection.OUT));
 
 				}
 
@@ -807,6 +819,8 @@ public class VerilogParser {
 
 			}
 
+			return;
+
 		} else if (tokens == 4 || tokens == 5) {
 
 			// indexed identifier, e.g. x[1]
@@ -848,12 +862,54 @@ public class VerilogParser {
 
 					fail(filename, msg2, itemCon);
 				}
+
+				return;
 			}
 
-		} else {
-
-			fail(filename, ERR_MSG_13, itemCon);
 		}
+
+		fail(filename, ERR_MSG_13, itemCon);
+	}
+
+	private static Net parseArrayNet(ExpressionContext con) throws Exception {
+
+		int tokensR = con.getSourceInterval().length();
+
+		if (tokensR == 4 || tokensR == 5) {
+
+			// indexed identifier, e.g. x[1]
+
+			int spaceBuffer = tokensR == 5 ? 1 : 0;
+
+			int firstToken = con.start.getTokenIndex();
+
+			Token token1 = tokenStream.get(firstToken);
+
+			Token token2 = tokenStream.get(firstToken + 1 + spaceBuffer);
+
+			Token token3 = tokenStream.get(firstToken + 2 + spaceBuffer);
+
+			Token token4 = tokenStream.get(firstToken + 3 + spaceBuffer);
+
+			if (token2.getText().equals("[") && token4.getText().equals("]")) {
+
+				Net result = new Net(token1.getText());
+
+				int bit = Integer.parseInt(token3.getText());
+
+				result.start = bit;
+
+				result.end = bit;
+
+				return result;
+
+			}
+
+		}
+		// TODO: use fail(filename, ERR_MSG_13, ??) here
+
+		throw new Exception("unable to parse array net");
+
 	}
 
 	// checks
