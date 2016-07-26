@@ -440,9 +440,6 @@ public class VerilogParser {
 
 					netlist.modules.put(wireModID, m);
 
-					// segment below in this for loop is from
-					// processModulePinConnection (tokens == 1)
-
 					m.connections.put("IN", new PinConnection(netName, 0, PinDirection.IN));
 
 					m.connections.put("OUT", new PinConnection(lval, bitIndex, PinDirection.OUT));
@@ -523,7 +520,7 @@ public class VerilogParser {
 
 		Module_instantiationContext modIns = modItem.module_instantiation();
 
-		String id = modIns.module_identifier().getText();
+		String moduleType = modIns.module_identifier().getText();
 
 		List<Module_instanceContext> instances = modIns.module_instance();
 
@@ -531,17 +528,13 @@ public class VerilogParser {
 
 			Module_instanceContext i = instances.get(j);
 
-			Module m = new Module();
+			Module m = new Module(i.name_of_instance().getText(), moduleType);
 
-			m.type = id;
-
-			m.id = i.name_of_instance().getText();
-
-			ArrayList<Port> modulePorts = library1.get(id);
+			ArrayList<Port> modulePorts = library1.get(moduleType);
 
 			if (modulePorts == null) {
 
-				String msg2 = String.format(ERR_MSG_16, id);
+				String msg2 = String.format(ERR_MSG_16, moduleType);
 
 				fail(filename, msg2, itemCon);
 
@@ -567,45 +560,113 @@ public class VerilogParser {
 
 			}
 
+			// loop through ports
+
 			for (int k = 0; k < conCount; k++) {
 
-				ExpressionContext expr;
-
-				expr = ordered ? orderedCons.get(k).expression() : namedCons.get(k).expression();
+				ExpressionContext expr = ordered ? orderedCons.get(k).expression() : namedCons.get(k).expression();
 
 				List<TermContext> termList = expr.term();
 
-				if (termList.size() != 1) {
-
+				if (termList.size() != 1)
 					fail(filename, ERR_MSG_4, itemCon);
-				}
 
-				TermContext z = termList.get(0);
+				PrimaryContext zp = termList.get(0).primary();
 
-				PrimaryContext zp = z.primary();
-
-				String port_con = "";
+				String portNet = ""; // net connected though this port
 
 				if (zp.hierarchical_identifier() != null) {
 
-					port_con = zp.hierarchical_identifier().getText();
+					portNet = zp.hierarchical_identifier().getText();
 
 				} else if (zp.number() != null) {
 
-					port_con = zp.number().getText();
+					portNet = zp.number().getText();
 
 				} else {
 
-					fail("ERR_MSG_2");
+					fail(ERR_MSG_2);
 				}
 
-				String port_id = ordered ? modulePorts.get(k).id : namedCons.get(k).port_identifier().getText();
+				String portID = ordered ? modulePorts.get(k).id : namedCons.get(k).port_identifier().getText();
 
-				// PinDirection dir = library1.getPort(id, port_id).direction;
+				Port port = library1.getPort(moduleType, portID);
 
-				Port port = library1.getPort(id, port_id);
+				// start processing module pin connections
 
-				processModulePinConnection(filename, m, zp, port_con, itemCon, port, netlist);
+				// this section here does the following:
+
+				// - adds a PinConnection to the `connections` set of Module `m`
+				// - create any single-bit nets that the port connection
+				// references, and adds them to netlist.nets
+
+				if (portNet.contains("[")) {
+
+					// indexed net identifier, (e.g. "x[1]")
+
+					Net netR = parseArrayNet(zp);
+
+					PinConnection pcon = new PinConnection(netR.id, netR.start, port.direction);
+
+					m.connections.put(port.id, pcon);
+
+					// check if net port_con is explicitly declared
+
+					if (!netlist.nets.containsKey(netR.id)) {
+
+						String msg2 = String.format(ERR_MSG_17, portNet);
+
+						fail(filename, msg2, itemCon);
+					}
+
+					// check if bit is in net range
+
+					if (!netlist.nets.get(netR.id).inRange(netR.start)) {
+
+						String msg1_a = "net <%s> does not have bit <%d>";
+
+						String msg2 = String.format(msg1_a, portNet, netR.start);
+
+						fail(filename, msg2, itemCon);
+					}
+
+				} else {
+
+					// non-indexed net identifier (e.g. "x")
+
+					Net net = netlist.nets.get(portNet);
+
+					if (net == null) {
+
+						// implicit net declaration
+
+						if (port.getCount() > 1) {
+
+							// implicit net declaration with array ports is not
+							// supported atm
+
+							fail(filename, ERR_MSG_10, itemCon);
+
+						} else {
+
+							netlist.nets.put(portNet, new Net(portNet));
+
+						}
+					}
+
+					for (int bit : port.getBits()) {
+
+						PinConnection pcon = new PinConnection(portNet, bit, port.direction);
+
+						String pID = port.getCount() > 1 ? (port.id + "[" + bit + "]") : port.id;
+
+						m.connections.put(pID, pcon);
+
+					}
+
+				}
+
+				// finish processing module pin connections
 
 			}
 
@@ -771,114 +832,7 @@ public class VerilogParser {
 		}
 	}
 
-	private static void processModulePinConnection(String filename, Module m, ParserRuleContext zp, String port_con,
-			Module_itemContext itemCon, Port port, Netlist netlist) throws UnsupportedGrammerException {
-
-		// this function does the following:
-		// - adds a PinConnection to the `connections` set of Module `m`
-		// - create any single-bit nets that the port connection references, and
-		// adds them to netlist.nets
-
-		// inputs:
-
-		// filename : quoted when throwing parsing exceptions
-		// m : Module object
-		// zp : holds the tokens for the net to which the port is connected
-		// port_id : id of module port to be connected
-		// port_con : net to be connected to module
-		// itemCon : context of module instantiation (needed when throwing
-		// Exceptions)
-		// dir : direction of pin
-
-		int tokens = zp.stop.getTokenIndex() - zp.start.getTokenIndex() + 1;
-
-		if (tokens == 1) {
-
-			// identifier, e.g. x
-
-			Net net = netlist.nets.get(port_con);
-
-			if (net == null) {
-
-				// implicit net declaration
-
-				if (port.getCount() > 1) {
-
-					// implicit net declaration with array ports is not
-					// supported atm
-
-					fail(filename, ERR_MSG_10, itemCon);
-
-				} else {
-
-					netlist.nets.put(port_con, new Net(port_con));
-
-				}
-			}
-
-			for (int bit : port.getBits()) {
-
-				PinConnection pcon = new PinConnection(port_con, bit, port.direction);
-
-				String pID = port.getCount() > 1 ? (port.id + "[" + bit + "]") : port.id;
-
-				m.connections.put(pID, pcon);
-
-			}
-
-			return;
-
-		} else if (tokens == 4 || tokens == 5) {
-
-			// indexed identifier, e.g. x[1]
-
-			int spaceBuffer = tokens == 5 ? 1 : 0;
-
-			Token token2 = tokenStream.get(zp.start.getTokenIndex() + 1 + spaceBuffer);
-
-			Token token3 = tokenStream.get(zp.start.getTokenIndex() + 2 + spaceBuffer);
-
-			Token token4 = tokenStream.get(zp.start.getTokenIndex() + 3 + spaceBuffer);
-
-			if (token2.getText().equals("[") && token4.getText().equals("]")) {
-
-				port_con = zp.start.getText();
-
-				int pin = Integer.parseInt(token3.getText());
-
-				PinConnection pcon = new PinConnection(port_con, pin, port.direction);
-
-				m.connections.put(port.id, pcon);
-
-				// check if net port_con is explicitly declared
-
-				if (!netlist.nets.containsKey(port_con)) {
-
-					String msg2 = String.format(ERR_MSG_17, port_con);
-
-					fail(filename, msg2, itemCon);
-				}
-
-				// check if bit is in net range
-
-				if (!netlist.nets.get(port_con).inRange(pin)) {
-
-					String msg1_a = "net <%s> does not have bit <%d>";
-
-					String msg2 = String.format(msg1_a, port_con, pin);
-
-					fail(filename, msg2, itemCon);
-				}
-
-				return;
-			}
-
-		}
-
-		fail(filename, ERR_MSG_13, itemCon);
-	}
-
-	private static Net parseArrayNet(ExpressionContext con) throws Exception {
+	private static Net parseArrayNet(ParserRuleContext con) throws Exception {
 
 		int tokensR = con.getSourceInterval().length();
 
