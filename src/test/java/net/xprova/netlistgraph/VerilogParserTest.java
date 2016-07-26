@@ -155,7 +155,7 @@ public class VerilogParserTest extends TestCase {
 
 		assertEquals(ng.getModules().size(), 1);
 
-		assertEquals(ng.getModulesByType("WIRE_NG_INTERNAL").size(), 1);
+		assertEquals(ng.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 1);
 
 		new NetlistGraph(VerilogParser.parseString(str2, lib).get(0));
 

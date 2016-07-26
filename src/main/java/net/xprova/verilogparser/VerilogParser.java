@@ -56,6 +56,13 @@ import net.xprova.verilogparser.Verilog2001Parser.TermContext;
  */
 public class VerilogParser {
 
+	// constants
+
+	// CASSIGN_MOD : name of internal virtual module used to represent
+	// continuous assignment statements (i.e. wires)
+
+	public final static String CASSIGN_MOD = "*CASSIGN";
+
 	// class members
 
 	private static CommonTokenStream tokenStream;
@@ -427,9 +434,9 @@ public class VerilogParser {
 
 				for (String netName : netNames) {
 
-					String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
+					String wireModID = CASSIGN_MOD + "_u" + netlist.modules.size();
 
-					Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+					Module m = new Module(wireModID, CASSIGN_MOD);
 
 					netlist.modules.put(wireModID, m);
 
@@ -471,9 +478,9 @@ public class VerilogParser {
 
 				Net rNet = parseArrayNet(conAssign.expression());
 
-				String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
+				String wireModID = CASSIGN_MOD + "_u" + netlist.modules.size();
 
-				Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+				Module m = new Module(wireModID, CASSIGN_MOD);
 
 				netlist.modules.put(wireModID, m);
 
@@ -491,9 +498,9 @@ public class VerilogParser {
 
 				for (int bit = 0; bit < bitsL; bit++) {
 
-					String wireModID = "WIRE_NG_INTERNAL_u" + netlist.modules.size();
+					String wireModID = CASSIGN_MOD + "_u" + netlist.modules.size();
 
-					Module m = new Module(wireModID, "WIRE_NG_INTERNAL");
+					Module m = new Module(wireModID, CASSIGN_MOD);
 
 					netlist.modules.put(wireModID, m);
 

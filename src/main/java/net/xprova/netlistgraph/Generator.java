@@ -10,6 +10,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.xprova.verilogparser.VerilogParser;
+
 public class Generator {
 
 	private static class Range {
@@ -81,7 +83,7 @@ public class Generator {
 
 		for (Vertex v : graph.getModules()) {
 
-			if ("WIRE_NG_INTERNAL".equals(v.subtype)) {
+			if (VerilogParser.CASSIGN_MOD.equals(v.subtype)) {
 
 				// virtual module created by an assignment statement
 
