@@ -118,9 +118,7 @@ public class VerilogParser {
 
 		System.err.printf("Parser error (%s:%d): %s\n", filename, lineNum, tokenStr);
 
-		System.err.println(errMsg);
-
-		throw new UnsupportedGrammerException("");
+		fail(errMsg);
 
 	}
 
@@ -475,6 +473,9 @@ public class VerilogParser {
 
 				Net rNet = parseArrayNet(conAssign.expression());
 
+				if (rNet == null)
+					fail(filename, ERR_MSG_13, itemCon);
+
 				String wireModID = CASSIGN_MOD + "_u" + netlist.modules.size();
 
 				Module m = new Module(wireModID, CASSIGN_MOD);
@@ -605,6 +606,9 @@ public class VerilogParser {
 					// indexed net identifier, (e.g. "x[1]")
 
 					Net netR = parseArrayNet(zp);
+
+					if (netR == null)
+						fail(filename, ERR_MSG_13, itemCon);
 
 					PinConnection pcon = new PinConnection(netR.id, netR.start, port.direction);
 
@@ -834,6 +838,9 @@ public class VerilogParser {
 
 	private static Net parseArrayNet(ParserRuleContext con) throws Exception {
 
+		// note: returns null on failure, parent method must throw parsing error
+		// if this method returns null
+
 		int tokensR = con.getSourceInterval().length();
 
 		if (tokensR == 4 || tokensR == 5) {
@@ -867,9 +874,8 @@ public class VerilogParser {
 			}
 
 		}
-		// TODO: use fail(filename, ERR_MSG_13, ??) here
 
-		throw new Exception("unable to parse array net");
+		return null;
 
 	}
 
