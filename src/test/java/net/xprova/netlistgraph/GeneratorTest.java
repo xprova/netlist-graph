@@ -39,7 +39,7 @@ public class GeneratorTest extends TestCase {
 
 	public void testSimpleAssign() throws Exception {
 
-		// simple assign statement (case 1)
+		// simple assign statement (case 3 - see VerilogParser.parseAssignStatement)
 
 		// parses, checks, generates, parses then checks again
 
@@ -59,7 +59,27 @@ public class GeneratorTest extends TestCase {
 
 	public void testSimpleAssign2() throws Exception {
 
-		// simple assign statement (case 2)
+		// simple assign statement (case 3 - see VerilogParser.parseAssignStatement)
+
+		// parses, checks, generates, parses then checks again
+
+		String strAssignSimple = "module top(a, b); input [3:0] a; output [3:0] b; assign b = a; endmodule";
+
+		NetlistGraph g1 = new NetlistGraph(VerilogParser.parseString(strAssignSimple, null).get(0));
+
+		assertEquals(g1.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 4);
+
+		String verilogString = Generator.generateString(g1);
+
+		NetlistGraph g2 = new NetlistGraph(VerilogParser.parseString(verilogString, null).get(0));
+
+		assertEquals(g2.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 4);
+
+	}
+
+	public void testBitAssign1() throws Exception {
+
+		// simple assign statement (case 2 - see VerilogParser.parseAssignStatement)
 
 		// parses, checks, generates, parses then checks again
 
@@ -77,9 +97,9 @@ public class GeneratorTest extends TestCase {
 
 	}
 
-	public void testBitAssign() throws Exception {
+	public void testBitAssign2() throws Exception {
 
-		// array assign statement (individual bits)
+		// simple assign statement (case 2 - see VerilogParser.parseAssignStatement)
 
 		// parses, checks, generates, parses then checks again
 
@@ -97,23 +117,43 @@ public class GeneratorTest extends TestCase {
 
 	}
 
-	public void testArrayAssign() throws Exception {
+	public void testBitAssign3() throws Exception {
 
-		// array assign statement (all bits)
+		// simple assign statement (case 2 - see VerilogParser.parseAssignStatement)
 
 		// parses, checks, generates, parses then checks again
 
-		String strAssignArray1 = "module top(a, b); input [7:0] a; output [7:0] b; assign b = a; endmodule";
+		String strAssignSimple = "module top(a, b); input [1:0] a; output [1:0] b; assign b[0] = a[0]; assign b[1] = a[1]; endmodule";
 
-		NetlistGraph g1 = new NetlistGraph(VerilogParser.parseString(strAssignArray1, null).get(0));
+		NetlistGraph g1 = new NetlistGraph(VerilogParser.parseString(strAssignSimple, null).get(0));
 
-		assertEquals(g1.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 8);
+		assertEquals(g1.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 2);
 
 		String verilogString = Generator.generateString(g1);
 
 		NetlistGraph g2 = new NetlistGraph(VerilogParser.parseString(verilogString, null).get(0));
 
-		assertEquals(g2.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 8);
+		assertEquals(g2.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 2);
+
+	}
+
+	public void testConcatAssign() throws Exception {
+
+		// concat assign statement (case 1 - see VerilogParser.parseAssignStatement)
+
+		// parses, checks, generates, parses then checks again
+
+		String strAssignArray1 = "module top(a, b, c); input a, b; output [1:0] c; assign c = {a, b}; endmodule";
+
+		NetlistGraph g1 = new NetlistGraph(VerilogParser.parseString(strAssignArray1, null).get(0));
+
+		assertEquals(g1.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 2);
+
+		String verilogString = Generator.generateString(g1);
+
+		NetlistGraph g2 = new NetlistGraph(VerilogParser.parseString(verilogString, null).get(0));
+
+		assertEquals(g2.getModulesByType(VerilogParser.CASSIGN_MOD).size(), 2);
 
 	}
 
