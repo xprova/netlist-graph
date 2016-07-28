@@ -84,6 +84,7 @@ public class VerilogParser {
 	private final static String ERR_MSG_9 = "declaration mismatch between port <%s> [%d:%d] and wire <%s> [%d:%d]";
 
 	private final static String ERR_MSG_10 = "implicit declaratin of array net";
+	private final static String ERR_MSG_11 = "bit width mistmatch in concatenation assignment";
 	private final static String ERR_MSG_12 = "gate instantiation is not supported";
 	private final static String ERR_MSG_13 = "unsupported module connection";
 
@@ -409,6 +410,25 @@ public class VerilogParser {
 	private static void parseAssignStatement(String filename, Module_itemContext itemCon, Netlist netlist)
 			throws Exception {
 
+		// This method parses assignments based on cases.
+		// It would be better if this is instead done by, for example, creating
+		// lists of source and destination pins and then connecting the two
+		// together. However, the current implementation should be sufficiently
+		// good for now.
+
+		// Supported cases:
+
+		// Case 1: basic unwrapping of concatenation operator
+		// assign x = {a,b,c ...}; // where a, b and c are single-bit nets
+
+		// Case 2: assignment of/to individual array bits
+		// assign x[0] = y;
+		// assign x = y[0];
+		// assign x[0] = y[0];
+
+		// Case 3: assignment of entire arrays
+		// assign x = y; // where x and y have the same bit width
+
 		List<Net_assignmentContext> assignList = itemCon.module_or_generate_item().continuous_assign()
 				.list_of_net_assignments().net_assignment();
 
@@ -416,6 +436,8 @@ public class VerilogParser {
 
 			String lval = conAssign.net_lvalue().getText();
 			String rval = conAssign.expression().getText();
+
+			// Case 1: concatenation
 
 			boolean isConcatR = rval.contains("{");
 
@@ -429,6 +451,9 @@ public class VerilogParser {
 				String[] netNames = netNamesStr.split(",");
 
 				int bitIndex = 0;
+
+				if (netlist.nets.get(lval).getCount() != netNames.length)
+					fail(filename, ERR_MSG_11, itemCon);
 
 				for (String netName : netNames) {
 
@@ -469,9 +494,19 @@ public class VerilogParser {
 
 				}
 
-			} else if (rval.contains("[")) {
+				continue;
 
-				Net rNet = parseArrayNet(conAssign.expression());
+			}
+
+			// Case 2: individual array bits
+
+			boolean rArray = rval.contains("[");
+			boolean lArray = lval.contains("[");
+
+			if (rArray || lArray) {
+
+				Net rNet = rArray ? parseArrayNet(conAssign.expression()) : netlist.nets.get(rval);
+				Net lNet = lArray ? parseArrayNet(conAssign.net_lvalue()) : netlist.nets.get(lval);
 
 				if (rNet == null)
 					fail(filename, ERR_MSG_13, itemCon);
@@ -484,15 +519,18 @@ public class VerilogParser {
 
 				m.connections.put("IN", new PinConnection(rNet.id, rNet.start, PinDirection.IN));
 
-				m.connections.put("OUT", new PinConnection(lval, rNet.start, PinDirection.OUT));
+				m.connections.put("OUT", new PinConnection(lNet.id, lNet.start, PinDirection.OUT));
 
-			} else {
+				continue;
 
-				int bitsL = netlist.nets.get(lval).getCount();
-				int bitsR = netlist.nets.get(rval).getCount();
+			}
 
-				if (bitsL != bitsR)
-					fail(filename, "bit number mismatch in continuous assignment statement", itemCon);
+			// Case 3: entire arrays
+
+			int bitsL = netlist.nets.get(lval).getCount();
+			int bitsR = netlist.nets.get(rval).getCount();
+
+			if (bitsL == bitsR) {
 
 				for (int bit = 0; bit < bitsL; bit++) {
 
@@ -507,6 +545,12 @@ public class VerilogParser {
 					m.connections.put("OUT", new PinConnection(lval, bit, PinDirection.OUT));
 
 				}
+
+				continue;
+
+			} else {
+
+				fail(filename, "bit number mismatch in continuous assignment statement", itemCon);
 
 			}
 
