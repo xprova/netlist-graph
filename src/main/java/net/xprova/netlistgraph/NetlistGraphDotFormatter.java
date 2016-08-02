@@ -38,7 +38,10 @@ public class NetlistGraphDotFormatter extends GraphDotFormatter<Vertex> {
 
 		} else {
 
-			boolean isFlop = parent.getNet(v, "CK") != null;
+			// TODO: replace this heuristic with better way of determining if
+			// vertex is a flip-flop
+
+			boolean isFlop = (parent.getNet(v, "CK") != null) || (v.subtype.contains("DFF")) ;
 
 			boolean isBlock = v.subtype.equals("BLOCK");
 
