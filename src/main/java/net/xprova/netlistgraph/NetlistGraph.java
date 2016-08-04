@@ -966,4 +966,16 @@ public class NetlistGraph extends Graph<Vertex> {
 
 	}
 
+	public boolean isInput(Vertex net) {
+
+		return inputs.contains(net);
+
+	}
+
+	public boolean isOutput(Vertex net) {
+
+		return outputs.contains(net);
+
+	}
+
 }
