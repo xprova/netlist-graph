@@ -6,6 +6,8 @@ public class NetlistGraphDotFormatter extends GraphDotFormatter<Vertex> {
 
 	private final NetlistGraph parent;
 
+	private final boolean useModuleTypes;
+
 	@Override
 	public String getEdgeLabel(Vertex s, Vertex d) {
 
@@ -13,13 +15,25 @@ public class NetlistGraphDotFormatter extends GraphDotFormatter<Vertex> {
 
 	}
 
-	public NetlistGraphDotFormatter(NetlistGraph parent) {
+	public NetlistGraphDotFormatter(NetlistGraph parent, boolean useModuleTypes) {
 
 		super();
 
 		this.parent = parent;
 
+		this.useModuleTypes = useModuleTypes;
+
 	}
+
+	@Override
+	public String getVertexLabel(Vertex s) {
+
+		boolean useSubType = s.type == VertexType.MODULE && useModuleTypes;
+
+		return (useSubType ? s.subtype : s).toString();
+
+	}
+
 
 	@Override
 	public String getShape(Vertex v) {

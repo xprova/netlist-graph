@@ -45,7 +45,7 @@ public class GraphDotPrinter {
 
 				String vid = "n" + idCounter;
 
-				String label = v.toString();
+				String label = formatter.getVertexLabel(v);
 
 				if (label.length() > maxLabelLength)
 					label = label.substring(0, maxLabelLength - 1);

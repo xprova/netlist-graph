@@ -43,7 +43,11 @@ public class GraphDotFormatter<V> {
 
 	}
 
+	public String getVertexLabel(V s) {
 
+		return s.toString();
+
+	}
 
 	public String getEdgeLabel(V s, V d) {
 
