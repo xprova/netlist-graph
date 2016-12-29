@@ -12,6 +12,8 @@ public class Vertex implements Comparable<Vertex> {
 
 	public int arraySize = 0; // if vertex belongs to array
 
+	public String tag = ""; // additional tag attribute (optional)
+
 	public Vertex(String name, VertexType type, String subtype) {
 
 		this.name = name;
@@ -35,6 +37,8 @@ public class Vertex implements Comparable<Vertex> {
 		this.arrayIndex = other.arrayIndex;
 
 		this.arraySize = other.arraySize;
+
+		this.tag = other.tag;
 
 	}
 
