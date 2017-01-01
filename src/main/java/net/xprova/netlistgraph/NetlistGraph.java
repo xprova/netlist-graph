@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import net.xprova.graph.Graph;
 import net.xprova.graph.MultiMap;
@@ -302,8 +303,9 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		// checks graph for nets with no or multiple drivers
 
-		final String msg_1 = "net <%s> has no drivers";
 		final String msg_2 = "net <%s> has multiple drivers";
+
+		TreeSet<Vertex> undriven = new TreeSet<Vertex>();
 
 		// add special nets
 
@@ -313,9 +315,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 			if (drivers == 0 && !inputs.contains(net)) {
 
-				String msg = String.format(msg_1, net.name);
-
-				throw new ConnectivityException(msg);
+				undriven.add(net);
 
 			} else if (drivers > 1) {
 
@@ -323,6 +323,17 @@ public class NetlistGraph extends Graph<Vertex> {
 
 				throw new ConnectivityException(msg);
 			}
+		}
+
+		// remove undriven nets
+
+		System.out.flush();
+
+		for (Vertex v : undriven) {
+
+			System.err.printf("Warning: net %s has no driver\n", v);
+
+			removeVertex(v);
 		}
 
 	}
