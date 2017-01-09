@@ -331,7 +331,7 @@ public class NetlistGraph extends Graph<Vertex> {
 
 		for (Vertex v : undriven) {
 
-			System.err.printf("Warning: net %s has no driver\n", v);
+			System.out.printf("Warning: net %s has no driver\n", v);
 
 			removeVertex(v);
 		}
